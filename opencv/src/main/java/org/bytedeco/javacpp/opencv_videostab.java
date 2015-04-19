@@ -8,16 +8,15 @@ import org.bytedeco.javacpp.annotation.*;
 
 import static org.bytedeco.javacpp.opencv_core.*;
 import static org.bytedeco.javacpp.opencv_imgproc.*;
+import static org.bytedeco.javacpp.opencv_imgcodecs.*;
+import static org.bytedeco.javacpp.opencv_videoio.*;
 import static org.bytedeco.javacpp.opencv_highgui.*;
 import static org.bytedeco.javacpp.opencv_flann.*;
+import static org.bytedeco.javacpp.opencv_ml.*;
 import static org.bytedeco.javacpp.opencv_features2d.*;
 import static org.bytedeco.javacpp.opencv_calib3d.*;
-import static org.bytedeco.javacpp.opencv_objdetect.*;
 import static org.bytedeco.javacpp.opencv_photo.*;
-import static org.bytedeco.javacpp.opencv_ml.*;
 import static org.bytedeco.javacpp.opencv_video.*;
-import static org.bytedeco.javacpp.opencv_legacy.*;
-import static org.bytedeco.javacpp.opencv_nonfree.*;
 
 public class opencv_videostab extends org.bytedeco.javacpp.presets.opencv_videostab {
     static { Loader.load(); }
@@ -70,9 +69,7 @@ public class opencv_videostab extends org.bytedeco.javacpp.presets.opencv_videos
 // #define __OPENCV_VIDEOSTAB_FRAME_SOURCE_HPP__
 
 // #include <vector>
-// #include <string>
-// #include "opencv2/core/core.hpp"
-// #include "opencv2/highgui/highgui.hpp"
+// #include "opencv2/core.hpp"
 
 @Namespace("cv::videostab") public static class IFrameSource extends Pointer {
     static { Loader.load(); }
@@ -110,19 +107,21 @@ public class opencv_videostab extends org.bytedeco.javacpp.presets.opencv_videos
     /** Pointer cast constructor. Invokes {@link Pointer#Pointer(Pointer)}. */
     public VideoFileSource(Pointer p) { super(p); }
 
-    public VideoFileSource(@StdString BytePointer path, @Cast("bool") boolean volatileFrame/*=false*/) { allocate(path, volatileFrame); }
-    private native void allocate(@StdString BytePointer path, @Cast("bool") boolean volatileFrame/*=false*/);
-    public VideoFileSource(@StdString BytePointer path) { allocate(path); }
-    private native void allocate(@StdString BytePointer path);
-    public VideoFileSource(@StdString String path, @Cast("bool") boolean volatileFrame/*=false*/) { allocate(path, volatileFrame); }
-    private native void allocate(@StdString String path, @Cast("bool") boolean volatileFrame/*=false*/);
-    public VideoFileSource(@StdString String path) { allocate(path); }
-    private native void allocate(@StdString String path);
+    public VideoFileSource(@Str BytePointer path, @Cast("bool") boolean volatileFrame/*=false*/) { allocate(path, volatileFrame); }
+    private native void allocate(@Str BytePointer path, @Cast("bool") boolean volatileFrame/*=false*/);
+    public VideoFileSource(@Str BytePointer path) { allocate(path); }
+    private native void allocate(@Str BytePointer path);
+    public VideoFileSource(@Str String path, @Cast("bool") boolean volatileFrame/*=false*/) { allocate(path, volatileFrame); }
+    private native void allocate(@Str String path, @Cast("bool") boolean volatileFrame/*=false*/);
+    public VideoFileSource(@Str String path) { allocate(path); }
+    private native void allocate(@Str String path);
 
     public native void reset();
     public native @ByVal Mat nextFrame();
 
-    public native int frameCount();
+    public native int width();
+    public native int height();
+    public native int count();
     public native double fps();
 }
 
@@ -179,7 +178,7 @@ public class opencv_videostab extends org.bytedeco.javacpp.presets.opencv_videos
 // #ifndef __OPENCV_VIDEOSTAB_LOG_HPP__
 // #define __OPENCV_VIDEOSTAB_LOG_HPP__
 
-// #include "opencv2/core/core.hpp"
+// #include "opencv2/core.hpp"
 
 @Namespace("cv::videostab") public static class ILog extends Pointer {
     static { Loader.load(); }
@@ -284,7 +283,7 @@ public class opencv_videostab extends org.bytedeco.javacpp.presets.opencv_videos
 // #include <cmath>
 // #include <queue>
 // #include <algorithm>
-// #include "opencv2/core/core.hpp"
+// #include "opencv2/core.hpp"
 
 // See http://iwi.eldoc.ub.rug.nl/FILES/root/2004/JGraphToolsTelea/2004JGraphToolsTelea.pdf
 @Namespace("cv::videostab") @NoOffset public static class FastMarchingMethod extends Pointer {
@@ -359,11 +358,10 @@ public class opencv_videostab extends org.bytedeco.javacpp.presets.opencv_videos
 // #ifndef __OPENCV_VIDEOSTAB_OPTICAL_FLOW_HPP__
 // #define __OPENCV_VIDEOSTAB_OPTICAL_FLOW_HPP__
 
-// #include "opencv2/core/core.hpp"
+// #include "opencv2/core.hpp"
 // #include "opencv2/opencv_modules.hpp"
 
-// #if defined(HAVE_OPENCV_GPU) && !defined(ANDROID)
-// #  include "opencv2/gpu/gpu.hpp"
+// #ifdef HAVE_OPENCV_CUDAOPTFLOW
 // #endif
 
 @Namespace("cv::videostab") public static class ISparseOptFlowEstimator extends Pointer {
@@ -432,28 +430,216 @@ public class opencv_videostab extends org.bytedeco.javacpp.presets.opencv_videos
                 @ByVal Mat status, @ByVal Mat errors);
 }
 
-// #if defined(HAVE_OPENCV_GPU) && !defined(ANDROID)
-@Platform(not="android") @Namespace("cv::videostab") @NoOffset public static class DensePyrLkOptFlowEstimatorGpu extends PyrLkOptFlowEstimatorBase {
+// #ifdef HAVE_OPENCV_CUDAOPTFLOW
+
+// #endif
+
+ // namespace videostab
+ // namespace cv
+
+// #endif
+
+
+// Parsed from <opencv2/videostab/motion_core.hpp>
+
+/*M///////////////////////////////////////////////////////////////////////////////////////
+//
+//  IMPORTANT: READ BEFORE DOWNLOADING, COPYING, INSTALLING OR USING.
+//
+//  By downloading, copying, installing or using the software you agree to this license.
+//  If you do not agree to this license, do not download, install,
+//  copy or use the software.
+//
+//
+//                           License Agreement
+//                For Open Source Computer Vision Library
+//
+// Copyright (C) 2000-2008, Intel Corporation, all rights reserved.
+// Copyright (C) 2009-2011, Willow Garage Inc., all rights reserved.
+// Third party copyrights are property of their respective owners.
+//
+// Redistribution and use in source and binary forms, with or without modification,
+// are permitted provided that the following conditions are met:
+//
+//   * Redistribution's of source code must retain the above copyright notice,
+//     this list of conditions and the following disclaimer.
+//
+//   * Redistribution's in binary form must reproduce the above copyright notice,
+//     this list of conditions and the following disclaimer in the documentation
+//     and/or other materials provided with the distribution.
+//
+//   * The name of the copyright holders may not be used to endorse or promote products
+//     derived from this software without specific prior written permission.
+//
+// This software is provided by the copyright holders and contributors "as is" and
+// any express or implied warranties, including, but not limited to, the implied
+// warranties of merchantability and fitness for a particular purpose are disclaimed.
+// In no event shall the Intel Corporation or contributors be liable for any direct,
+// indirect, incidental, special, exemplary, or consequential damages
+// (including, but not limited to, procurement of substitute goods or services;
+// loss of use, data, or profits; or business interruption) however caused
+// and on any theory of liability, whether in contract, strict liability,
+// or tort (including negligence or otherwise) arising in any way out of
+// the use of this software, even if advised of the possibility of such damage.
+//
+//M*/
+
+// #ifndef __OPENCV_VIDEOSTAB_MOTION_CORE_HPP__
+// #define __OPENCV_VIDEOSTAB_MOTION_CORE_HPP__
+
+// #include <cmath>
+// #include "opencv2/core.hpp"
+
+/** enum cv::videostab::MotionModel */
+public static final int
+    MM_TRANSLATION = 0,
+    MM_TRANSLATION_AND_SCALE = 1,
+    MM_ROTATION = 2,
+    MM_RIGID = 3,
+    MM_SIMILARITY = 4,
+    MM_AFFINE = 5,
+    MM_HOMOGRAPHY = 6,
+    MM_UNKNOWN = 7;
+
+@Namespace("cv::videostab") @NoOffset public static class RansacParams extends Pointer {
     static { Loader.load(); }
     /** Pointer cast constructor. Invokes {@link Pointer#Pointer(Pointer)}. */
-    public DensePyrLkOptFlowEstimatorGpu(Pointer p) { super(p); }
+    public RansacParams(Pointer p) { super(p); }
     /** Native array allocator. Access with {@link Pointer#position(int)}. */
-    public DensePyrLkOptFlowEstimatorGpu(int size) { allocateArray(size); }
+    public RansacParams(int size) { allocateArray(size); }
     private native void allocateArray(int size);
-    @Override public DensePyrLkOptFlowEstimatorGpu position(int position) {
-        return (DensePyrLkOptFlowEstimatorGpu)super.position(position);
+    @Override public RansacParams position(int position) {
+        return (RansacParams)super.position(position);
     }
-    public IDenseOptFlowEstimator asIDenseOptFlowEstimator() { return asIDenseOptFlowEstimator(this); }
-    @Namespace public static native @Name("static_cast<cv::videostab::IDenseOptFlowEstimator*>") IDenseOptFlowEstimator asIDenseOptFlowEstimator(DensePyrLkOptFlowEstimatorGpu pointer);
 
-    public DensePyrLkOptFlowEstimatorGpu() { allocate(); }
+    public native int size(); public native RansacParams size(int size); // subset size
+    public native float thresh(); public native RansacParams thresh(float thresh); // max error to classify as inlier
+    public native float eps(); public native RansacParams eps(float eps); // max outliers ratio
+    public native float prob(); public native RansacParams prob(float prob); // probability of success
+
+    public RansacParams() { allocate(); }
+    private native void allocate();
+    public RansacParams(int size, float thresh, float eps, float prob) { allocate(size, thresh, eps, prob); }
+    private native void allocate(int size, float thresh, float eps, float prob);
+
+    public native int niters();
+
+    public static native @ByVal RansacParams default2dMotion(@Cast("cv::videostab::MotionModel") int model);
+}
+
+
+
+
+ // namespace videostab
+ // namespace cv
+
+// #endif
+
+
+// Parsed from <opencv2/videostab/outlier_rejection.hpp>
+
+/*M///////////////////////////////////////////////////////////////////////////////////////
+//
+//  IMPORTANT: READ BEFORE DOWNLOADING, COPYING, INSTALLING OR USING.
+//
+//  By downloading, copying, installing or using the software you agree to this license.
+//  If you do not agree to this license, do not download, install,
+//  copy or use the software.
+//
+//
+//                           License Agreement
+//                For Open Source Computer Vision Library
+//
+// Copyright (C) 2000-2008, Intel Corporation, all rights reserved.
+// Copyright (C) 2009-2011, Willow Garage Inc., all rights reserved.
+// Third party copyrights are property of their respective owners.
+//
+// Redistribution and use in source and binary forms, with or without modification,
+// are permitted provided that the following conditions are met:
+//
+//   * Redistribution's of source code must retain the above copyright notice,
+//     this list of conditions and the following disclaimer.
+//
+//   * Redistribution's in binary form must reproduce the above copyright notice,
+//     this list of conditions and the following disclaimer in the documentation
+//     and/or other materials provided with the distribution.
+//
+//   * The name of the copyright holders may not be used to endorse or promote products
+//     derived from this software without specific prior written permission.
+//
+// This software is provided by the copyright holders and contributors "as is" and
+// any express or implied warranties, including, but not limited to, the implied
+// warranties of merchantability and fitness for a particular purpose are disclaimed.
+// In no event shall the Intel Corporation or contributors be liable for any direct,
+// indirect, incidental, special, exemplary, or consequential damages
+// (including, but not limited to, procurement of substitute goods or services;
+// loss of use, data, or profits; or business interruption) however caused
+// and on any theory of liability, whether in contract, strict liability,
+// or tort (including negligence or otherwise) arising in any way out of
+// the use of this software, even if advised of the possibility of such damage.
+//
+//M*/
+
+// #ifndef __OPENCV_VIDEOSTAB_OUTLIER_REJECTION_HPP__
+// #define __OPENCV_VIDEOSTAB_OUTLIER_REJECTION_HPP__
+
+// #include <vector>
+// #include "opencv2/core.hpp"
+// #include "opencv2/videostab/motion_core.hpp"
+
+@Namespace("cv::videostab") public static class IOutlierRejector extends Pointer {
+    static { Loader.load(); }
+    /** Empty constructor. */
+    public IOutlierRejector() { }
+    /** Pointer cast constructor. Invokes {@link Pointer#Pointer(Pointer)}. */
+    public IOutlierRejector(Pointer p) { super(p); }
+
+
+    public native void process(
+                @ByVal Size frameSize, @ByVal Mat points0, @ByVal Mat points1, @ByVal Mat mask);
+}
+
+@Namespace("cv::videostab") public static class NullOutlierRejector extends IOutlierRejector {
+    static { Loader.load(); }
+    /** Default native constructor. */
+    public NullOutlierRejector() { allocate(); }
+    /** Native array allocator. Access with {@link Pointer#position(int)}. */
+    public NullOutlierRejector(int size) { allocateArray(size); }
+    /** Pointer cast constructor. Invokes {@link Pointer#Pointer(Pointer)}. */
+    public NullOutlierRejector(Pointer p) { super(p); }
+    private native void allocate();
+    private native void allocateArray(int size);
+    @Override public NullOutlierRejector position(int position) {
+        return (NullOutlierRejector)super.position(position);
+    }
+
+    public native void process(
+                @ByVal Size frameSize, @ByVal Mat points0, @ByVal Mat points1, @ByVal Mat mask);
+}
+
+@Namespace("cv::videostab") @NoOffset public static class TranslationBasedLocalOutlierRejector extends IOutlierRejector {
+    static { Loader.load(); }
+    /** Pointer cast constructor. Invokes {@link Pointer#Pointer(Pointer)}. */
+    public TranslationBasedLocalOutlierRejector(Pointer p) { super(p); }
+    /** Native array allocator. Access with {@link Pointer#position(int)}. */
+    public TranslationBasedLocalOutlierRejector(int size) { allocateArray(size); }
+    private native void allocateArray(int size);
+    @Override public TranslationBasedLocalOutlierRejector position(int position) {
+        return (TranslationBasedLocalOutlierRejector)super.position(position);
+    }
+
+    public TranslationBasedLocalOutlierRejector() { allocate(); }
     private native void allocate();
 
-    public native void run(
-                @ByVal Mat frame0, @ByVal Mat frame1, @ByVal Mat flowX, @ByVal Mat flowY,
-                @ByVal Mat errors);
+    public native void setCellSize(@ByVal Size val);
+    public native @ByVal Size cellSize();
+
+    public native void setRansacParams(@ByVal RansacParams val);
+    public native @ByVal RansacParams ransacParams();
+
+    public native void process(
+                @ByVal Size frameSize, @ByVal Mat points0, @ByVal Mat points1, @ByVal Mat mask);
 }
-// #endif
 
  // namespace videostab
  // namespace cv
@@ -509,111 +695,172 @@ public class opencv_videostab extends org.bytedeco.javacpp.presets.opencv_videos
 // #define __OPENCV_VIDEOSTAB_GLOBAL_MOTION_HPP__
 
 // #include <vector>
-// #include "opencv2/core/core.hpp"
-// #include "opencv2/features2d/features2d.hpp"
+// #include <fstream>
+// #include "opencv2/core.hpp"
+// #include "opencv2/features2d.hpp"
+// #include "opencv2/opencv_modules.hpp"
 // #include "opencv2/videostab/optical_flow.hpp"
+// #include "opencv2/videostab/motion_core.hpp"
+// #include "opencv2/videostab/outlier_rejection.hpp"
 
-/** enum cv::videostab::MotionModel */
-public static final int
-    TRANSLATION = 0,
-    TRANSLATION_AND_SCALE = 1,
-    LINEAR_SIMILARITY = 2,
-    AFFINE = 3;
+// #ifdef HAVE_OPENCV_CUDAIMGPROC
+// #endif
 
 @Namespace("cv::videostab") public static native @ByVal Mat estimateGlobalMotionLeastSquares(
-        @StdVector Point2f points0, @StdVector Point2f points1,
-        int model/*=AFFINE*/, FloatPointer rmse/*=0*/);
+        @ByVal Mat points0, @ByVal Mat points1, int model/*=MM_AFFINE*/,
+        FloatPointer rmse/*=0*/);
 @Namespace("cv::videostab") public static native @ByVal Mat estimateGlobalMotionLeastSquares(
-        @StdVector Point2f points0, @StdVector Point2f points1);
+        @ByVal Mat points0, @ByVal Mat points1);
 @Namespace("cv::videostab") public static native @ByVal Mat estimateGlobalMotionLeastSquares(
-        @StdVector Point2f points0, @StdVector Point2f points1,
-        int model/*=AFFINE*/, FloatBuffer rmse/*=0*/);
+        @ByVal Mat points0, @ByVal Mat points1, int model/*=MM_AFFINE*/,
+        FloatBuffer rmse/*=0*/);
 @Namespace("cv::videostab") public static native @ByVal Mat estimateGlobalMotionLeastSquares(
-        @StdVector Point2f points0, @StdVector Point2f points1,
-        int model/*=AFFINE*/, float[] rmse/*=0*/);
+        @ByVal Mat points0, @ByVal Mat points1, int model/*=MM_AFFINE*/,
+        float[] rmse/*=0*/);
 
-@Namespace("cv::videostab") @NoOffset public static class RansacParams extends Pointer {
-    static { Loader.load(); }
-    /** Empty constructor. */
-    public RansacParams() { }
-    /** Pointer cast constructor. Invokes {@link Pointer#Pointer(Pointer)}. */
-    public RansacParams(Pointer p) { super(p); }
-
-    public native int size(); public native RansacParams size(int size); // subset size
-    public native float thresh(); public native RansacParams thresh(float thresh); // max error to classify as inlier
-    public native float eps(); public native RansacParams eps(float eps); // max outliers ratio
-    public native float prob(); public native RansacParams prob(float prob); // probability of success
-
-    public RansacParams(int _size, float _thresh, float _eps, float _prob) { allocate(_size, _thresh, _eps, _prob); }
-    private native void allocate(int _size, float _thresh, float _eps, float _prob);
-
-    public static native @ByVal RansacParams translationMotionStd();
-    public static native @ByVal RansacParams translationAndScale2dMotionStd();
-    public static native @ByVal RansacParams linearSimilarityMotionStd();
-    public static native @ByVal RansacParams affine2dMotionStd();
-}
-
-@Namespace("cv::videostab") public static native @ByVal Mat estimateGlobalMotionRobust(
-        @StdVector Point2f points0, @StdVector Point2f points1,
-        int model/*=AFFINE*/, @Const @ByRef RansacParams params/*=RansacParams::affine2dMotionStd()*/,
+@Namespace("cv::videostab") public static native @ByVal Mat estimateGlobalMotionRansac(
+        @ByVal Mat points0, @ByVal Mat points1, int model/*=MM_AFFINE*/,
+        @Const @ByRef RansacParams params/*=RansacParams::default2dMotion(MM_AFFINE)*/,
         FloatPointer rmse/*=0*/, IntPointer ninliers/*=0*/);
-@Namespace("cv::videostab") public static native @ByVal Mat estimateGlobalMotionRobust(
-        @StdVector Point2f points0, @StdVector Point2f points1);
-@Namespace("cv::videostab") public static native @ByVal Mat estimateGlobalMotionRobust(
-        @StdVector Point2f points0, @StdVector Point2f points1,
-        int model/*=AFFINE*/, @Const @ByRef RansacParams params/*=RansacParams::affine2dMotionStd()*/,
+@Namespace("cv::videostab") public static native @ByVal Mat estimateGlobalMotionRansac(
+        @ByVal Mat points0, @ByVal Mat points1);
+@Namespace("cv::videostab") public static native @ByVal Mat estimateGlobalMotionRansac(
+        @ByVal Mat points0, @ByVal Mat points1, int model/*=MM_AFFINE*/,
+        @Const @ByRef RansacParams params/*=RansacParams::default2dMotion(MM_AFFINE)*/,
         FloatBuffer rmse/*=0*/, IntBuffer ninliers/*=0*/);
-@Namespace("cv::videostab") public static native @ByVal Mat estimateGlobalMotionRobust(
-        @StdVector Point2f points0, @StdVector Point2f points1,
-        int model/*=AFFINE*/, @Const @ByRef RansacParams params/*=RansacParams::affine2dMotionStd()*/,
+@Namespace("cv::videostab") public static native @ByVal Mat estimateGlobalMotionRansac(
+        @ByVal Mat points0, @ByVal Mat points1, int model/*=MM_AFFINE*/,
+        @Const @ByRef RansacParams params/*=RansacParams::default2dMotion(MM_AFFINE)*/,
         float[] rmse/*=0*/, int[] ninliers/*=0*/);
 
-@Namespace("cv::videostab") public static class IGlobalMotionEstimator extends Pointer {
+@Namespace("cv::videostab") @NoOffset public static class MotionEstimatorBase extends Pointer {
     static { Loader.load(); }
     /** Empty constructor. */
-    public IGlobalMotionEstimator() { }
+    public MotionEstimatorBase() { }
     /** Pointer cast constructor. Invokes {@link Pointer#Pointer(Pointer)}. */
-    public IGlobalMotionEstimator(Pointer p) { super(p); }
+    public MotionEstimatorBase(Pointer p) { super(p); }
 
-    public native @ByVal Mat estimate(@Const @ByRef Mat frame0, @Const @ByRef Mat frame1);
-}
-
-@Namespace("cv::videostab") @NoOffset public static class PyrLkRobustMotionEstimator extends IGlobalMotionEstimator {
-    static { Loader.load(); }
-    /** Pointer cast constructor. Invokes {@link Pointer#Pointer(Pointer)}. */
-    public PyrLkRobustMotionEstimator(Pointer p) { super(p); }
-    /** Native array allocator. Access with {@link Pointer#position(int)}. */
-    public PyrLkRobustMotionEstimator(int size) { allocateArray(size); }
-    private native void allocateArray(int size);
-    @Override public PyrLkRobustMotionEstimator position(int position) {
-        return (PyrLkRobustMotionEstimator)super.position(position);
-    }
-
-    public PyrLkRobustMotionEstimator() { allocate(); }
-    private native void allocate();
-
-    public native void setDetector(@Ptr FeatureDetector val);
-    public native @Ptr FeatureDetector detector();
-
-    public native void setOptFlowEstimator(@Ptr ISparseOptFlowEstimator val);
-    public native @Ptr ISparseOptFlowEstimator optFlowEstimator();
 
     public native void setMotionModel(@Cast("cv::videostab::MotionModel") int val);
     public native @Cast("cv::videostab::MotionModel") int motionModel();
 
+    public native @ByVal Mat estimate(@ByVal Mat points0, @ByVal Mat points1, @Cast("bool*") BoolPointer ok/*=0*/);
+    public native @ByVal Mat estimate(@ByVal Mat points0, @ByVal Mat points1);
+}
+
+@Namespace("cv::videostab") @NoOffset public static class MotionEstimatorRansacL2 extends MotionEstimatorBase {
+    static { Loader.load(); }
+    /** Pointer cast constructor. Invokes {@link Pointer#Pointer(Pointer)}. */
+    public MotionEstimatorRansacL2(Pointer p) { super(p); }
+
+    public MotionEstimatorRansacL2(@Cast("cv::videostab::MotionModel") int model/*=MM_AFFINE*/) { allocate(model); }
+    private native void allocate(@Cast("cv::videostab::MotionModel") int model/*=MM_AFFINE*/);
+    public MotionEstimatorRansacL2() { allocate(); }
+    private native void allocate();
+
     public native void setRansacParams(@Const @ByRef RansacParams val);
     public native @ByVal RansacParams ransacParams();
-
-    public native void setMaxRmse(float val);
-    public native float maxRmse();
 
     public native void setMinInlierRatio(float val);
     public native float minInlierRatio();
 
+    public native @ByVal Mat estimate(@ByVal Mat points0, @ByVal Mat points1, @Cast("bool*") BoolPointer ok/*=0*/);
+    public native @ByVal Mat estimate(@ByVal Mat points0, @ByVal Mat points1);
+}
+
+@Namespace("cv::videostab") @NoOffset public static class MotionEstimatorL1 extends MotionEstimatorBase {
+    static { Loader.load(); }
+    /** Pointer cast constructor. Invokes {@link Pointer#Pointer(Pointer)}. */
+    public MotionEstimatorL1(Pointer p) { super(p); }
+
+    public MotionEstimatorL1(@Cast("cv::videostab::MotionModel") int model/*=MM_AFFINE*/) { allocate(model); }
+    private native void allocate(@Cast("cv::videostab::MotionModel") int model/*=MM_AFFINE*/);
+    public MotionEstimatorL1() { allocate(); }
+    private native void allocate();
+
+    public native @ByVal Mat estimate(@ByVal Mat points0, @ByVal Mat points1, @Cast("bool*") BoolPointer ok/*=0*/);
+    public native @ByVal Mat estimate(@ByVal Mat points0, @ByVal Mat points1);
+}
+
+@Namespace("cv::videostab") @NoOffset public static class ImageMotionEstimatorBase extends Pointer {
+    static { Loader.load(); }
+    /** Empty constructor. */
+    public ImageMotionEstimatorBase() { }
+    /** Pointer cast constructor. Invokes {@link Pointer#Pointer(Pointer)}. */
+    public ImageMotionEstimatorBase(Pointer p) { super(p); }
+
+
+    public native void setMotionModel(@Cast("cv::videostab::MotionModel") int val);
+    public native @Cast("cv::videostab::MotionModel") int motionModel();
+
+    public native @ByVal Mat estimate(@Const @ByRef Mat frame0, @Const @ByRef Mat frame1, @Cast("bool*") BoolPointer ok/*=0*/);
     public native @ByVal Mat estimate(@Const @ByRef Mat frame0, @Const @ByRef Mat frame1);
 }
 
-@Namespace("cv::videostab") public static native @ByVal Mat getMotion(int from, int to, @Const Mat motions, int size);
+@Namespace("cv::videostab") @NoOffset public static class FromFileMotionReader extends ImageMotionEstimatorBase {
+    static { Loader.load(); }
+    /** Empty constructor. */
+    public FromFileMotionReader() { }
+    /** Pointer cast constructor. Invokes {@link Pointer#Pointer(Pointer)}. */
+    public FromFileMotionReader(Pointer p) { super(p); }
+
+    public FromFileMotionReader(@Str BytePointer path) { allocate(path); }
+    private native void allocate(@Str BytePointer path);
+    public FromFileMotionReader(@Str String path) { allocate(path); }
+    private native void allocate(@Str String path);
+
+    public native @ByVal Mat estimate(@Const @ByRef Mat frame0, @Const @ByRef Mat frame1, @Cast("bool*") BoolPointer ok/*=0*/);
+    public native @ByVal Mat estimate(@Const @ByRef Mat frame0, @Const @ByRef Mat frame1);
+}
+
+@Namespace("cv::videostab") @NoOffset public static class ToFileMotionWriter extends ImageMotionEstimatorBase {
+    static { Loader.load(); }
+    /** Empty constructor. */
+    public ToFileMotionWriter() { }
+    /** Pointer cast constructor. Invokes {@link Pointer#Pointer(Pointer)}. */
+    public ToFileMotionWriter(Pointer p) { super(p); }
+
+    public ToFileMotionWriter(@Str BytePointer path, @Ptr ImageMotionEstimatorBase estimator) { allocate(path, estimator); }
+    private native void allocate(@Str BytePointer path, @Ptr ImageMotionEstimatorBase estimator);
+    public ToFileMotionWriter(@Str String path, @Ptr ImageMotionEstimatorBase estimator) { allocate(path, estimator); }
+    private native void allocate(@Str String path, @Ptr ImageMotionEstimatorBase estimator);
+
+    public native void setMotionModel(@Cast("cv::videostab::MotionModel") int val);
+    public native @Cast("cv::videostab::MotionModel") int motionModel();
+
+    public native @ByVal Mat estimate(@Const @ByRef Mat frame0, @Const @ByRef Mat frame1, @Cast("bool*") BoolPointer ok/*=0*/);
+    public native @ByVal Mat estimate(@Const @ByRef Mat frame0, @Const @ByRef Mat frame1);
+}
+
+@Namespace("cv::videostab") @NoOffset public static class KeypointBasedMotionEstimator extends ImageMotionEstimatorBase {
+    static { Loader.load(); }
+    /** Empty constructor. */
+    public KeypointBasedMotionEstimator() { }
+    /** Pointer cast constructor. Invokes {@link Pointer#Pointer(Pointer)}. */
+    public KeypointBasedMotionEstimator(Pointer p) { super(p); }
+
+    public KeypointBasedMotionEstimator(@Ptr MotionEstimatorBase estimator) { allocate(estimator); }
+    private native void allocate(@Ptr MotionEstimatorBase estimator);
+
+    public native void setMotionModel(@Cast("cv::videostab::MotionModel") int val);
+    public native @Cast("cv::videostab::MotionModel") int motionModel();
+
+    public native void setDetector(@Cast("cv::FeatureDetector*") @Ptr Feature2D val);
+    public native @Cast("cv::FeatureDetector*") @Ptr Feature2D detector();
+
+    public native void setOpticalFlowEstimator(@Ptr ISparseOptFlowEstimator val);
+    public native @Ptr ISparseOptFlowEstimator opticalFlowEstimator();
+
+    public native void setOutlierRejector(@Ptr IOutlierRejector val);
+    public native @Ptr IOutlierRejector outlierRejector();
+
+    public native @ByVal Mat estimate(@Const @ByRef Mat frame0, @Const @ByRef Mat frame1, @Cast("bool*") BoolPointer ok/*=0*/);
+    public native @ByVal Mat estimate(@Const @ByRef Mat frame0, @Const @ByRef Mat frame1);
+}
+
+// #if defined(HAVE_OPENCV_CUDAIMGPROC) && defined(HAVE_OPENCV_CUDA) && defined(HAVE_OPENCV_CUDAOPTFLOW)
+
+// #endif // defined(HAVE_OPENCV_CUDAIMGPROC) && defined(HAVE_OPENCV_CUDA) && defined(HAVE_OPENCV_CUDAOPTFLOW)
 
 @Namespace("cv::videostab") public static native @ByVal Mat getMotion(int from, int to, @Const @ByRef MatVector motions);
 
@@ -671,7 +918,9 @@ public static final int
 // #define __OPENCV_VIDEOSTAB_MOTION_STABILIZING_HPP__
 
 // #include <vector>
-// #include "opencv2/core/core.hpp"
+// #include <utility>
+// #include "opencv2/core.hpp"
+// #include "opencv2/videostab/global_motion.hpp"
 
 @Namespace("cv::videostab") public static class IMotionStabilizer extends Pointer {
     static { Loader.load(); }
@@ -680,13 +929,36 @@ public static final int
     /** Pointer cast constructor. Invokes {@link Pointer#Pointer(Pointer)}. */
     public IMotionStabilizer(Pointer p) { super(p); }
 
-    public native void stabilize(@Const Mat motions, int size, Mat stabilizationMotions);
 
-// #ifdef OPENCV_CAN_BREAK_BINARY_COMPATIBILITY
-// #endif
+    // assumes that [0, size-1) is in or equals to [range.first, range.second)
+    public native void stabilize(
+                int size, @Const @ByRef MatVector motions, @ByVal IntIntPair range,
+                Mat stabilizationMotions);
 }
 
-@Namespace("cv::videostab") @NoOffset public static class MotionFilterBase extends IMotionStabilizer {
+@Namespace("cv::videostab") public static class MotionStabilizationPipeline extends IMotionStabilizer {
+    static { Loader.load(); }
+    /** Default native constructor. */
+    public MotionStabilizationPipeline() { allocate(); }
+    /** Native array allocator. Access with {@link Pointer#position(int)}. */
+    public MotionStabilizationPipeline(int size) { allocateArray(size); }
+    /** Pointer cast constructor. Invokes {@link Pointer#Pointer(Pointer)}. */
+    public MotionStabilizationPipeline(Pointer p) { super(p); }
+    private native void allocate();
+    private native void allocateArray(int size);
+    @Override public MotionStabilizationPipeline position(int position) {
+        return (MotionStabilizationPipeline)super.position(position);
+    }
+
+    public native void pushBack(@Ptr IMotionStabilizer stabilizer);
+    public native @Cast("bool") boolean empty();
+
+    public native void stabilize(
+                int size, @Const @ByRef MatVector motions, @ByVal IntIntPair range,
+                Mat stabilizationMotions);
+}
+
+@Namespace("cv::videostab") public static class MotionFilterBase extends IMotionStabilizer {
     static { Loader.load(); }
     /** Empty constructor. */
     public MotionFilterBase() { }
@@ -694,13 +966,12 @@ public static final int
     public MotionFilterBase(Pointer p) { super(p); }
 
 
-    public native void setRadius(int val);
-    public native int radius();
+    public native @ByVal Mat stabilize(
+                int idx, @Const @ByRef MatVector motions, @ByVal IntIntPair range);
 
-    public native void update();
-
-    public native @ByVal Mat stabilize(int index, @Const Mat motions, int size);
-    public native void stabilize(@Const Mat motions, int size, Mat stabilizationMotions);
+    public native void stabilize(
+                int size, @Const @ByRef MatVector motions, @ByVal IntIntPair range,
+                Mat stabilizationMotions);
 }
 
 @Namespace("cv::videostab") @NoOffset public static class GaussianMotionFilter extends MotionFilterBase {
@@ -714,15 +985,56 @@ public static final int
         return (GaussianMotionFilter)super.position(position);
     }
 
+    public GaussianMotionFilter(int radius/*=15*/, float stdev/*=-1.f*/) { allocate(radius, stdev); }
+    private native void allocate(int radius/*=15*/, float stdev/*=-1.f*/);
     public GaussianMotionFilter() { allocate(); }
     private native void allocate();
 
-    public native void setStdev(float val);
+    public native void setParams(int radius, float stdev/*=-1.f*/);
+    public native void setParams(int radius);
+    public native int radius();
     public native float stdev();
 
-    public native void update();
+    public native @ByVal Mat stabilize(
+                int idx, @Const @ByRef MatVector motions, @ByVal IntIntPair range);
+}
 
-    public native @ByVal Mat stabilize(int index, @Const Mat motions, int size);
+
+
+@Namespace("cv::videostab") @NoOffset public static class LpMotionStabilizer extends IMotionStabilizer {
+    static { Loader.load(); }
+    /** Pointer cast constructor. Invokes {@link Pointer#Pointer(Pointer)}. */
+    public LpMotionStabilizer(Pointer p) { super(p); }
+
+    public LpMotionStabilizer(@Cast("cv::videostab::MotionModel") int model/*=MM_SIMILARITY*/) { allocate(model); }
+    private native void allocate(@Cast("cv::videostab::MotionModel") int model/*=MM_SIMILARITY*/);
+    public LpMotionStabilizer() { allocate(); }
+    private native void allocate();
+
+    public native void setMotionModel(@Cast("cv::videostab::MotionModel") int val);
+    public native @Cast("cv::videostab::MotionModel") int motionModel();
+
+    public native void setFrameSize(@ByVal Size val);
+    public native @ByVal Size frameSize();
+
+    public native void setTrimRatio(float val);
+    public native float trimRatio();
+
+    public native void setWeight1(float val);
+    public native float weight1();
+
+    public native void setWeight2(float val);
+    public native float weight2();
+
+    public native void setWeight3(float val);
+    public native float weight3();
+
+    public native void setWeight4(float val);
+    public native float weight4();
+
+    public native void stabilize(
+                int size, @Const @ByRef MatVector motions, @ByVal IntIntPair range,
+                Mat stabilizationMotions);
 }
 
 @Namespace("cv::videostab") public static native @ByVal Mat ensureInclusionConstraint(@Const @ByRef Mat M, @ByVal Size size, float trimRatio);
@@ -783,10 +1095,11 @@ public static final int
 // #define __OPENCV_VIDEOSTAB_INPAINTINT_HPP__
 
 // #include <vector>
-// #include "opencv2/core/core.hpp"
+// #include "opencv2/core.hpp"
 // #include "opencv2/videostab/optical_flow.hpp"
 // #include "opencv2/videostab/fast_marching.hpp"
-// #include "opencv2/photo/photo.hpp"
+// #include "opencv2/videostab/global_motion.hpp"
+// #include "opencv2/photo.hpp"
 
 @Namespace("cv::videostab") @NoOffset public static class InpainterBase extends Pointer {
     static { Loader.load(); }
@@ -799,6 +1112,14 @@ public static final int
     public native void setRadius(int val);
     public native int radius();
 
+    public native void setMotionModel(@Cast("cv::videostab::MotionModel") int val);
+    public native @Cast("cv::videostab::MotionModel") int motionModel();
+
+    public native void inpaint(int idx, @ByRef Mat frame, @ByRef Mat mask);
+
+
+    // data from stabilizer
+
     public native void setFrames(@Const @ByRef MatVector val);
     public native @Const @ByRef MatVector frames();
 
@@ -810,10 +1131,6 @@ public static final int
 
     public native void setStabilizationMotions(@Const @ByRef MatVector val);
     public native @Const @ByRef MatVector stabilizationMotions();
-
-    public native void update();
-
-    public native void inpaint(int idx, @ByRef Mat frame, @ByRef Mat mask);
 }
 
 @Namespace("cv::videostab") public static class NullInpainter extends InpainterBase {
@@ -833,7 +1150,7 @@ public static final int
     public native void inpaint(int arg0, @ByRef Mat arg1, @ByRef Mat arg2);
 }
 
-@Namespace("cv::videostab") @NoOffset public static class InpaintingPipeline extends InpainterBase {
+@Namespace("cv::videostab") public static class InpaintingPipeline extends InpainterBase {
     static { Loader.load(); }
     /** Default native constructor. */
     public InpaintingPipeline() { allocate(); }
@@ -851,12 +1168,11 @@ public static final int
     public native @Cast("bool") boolean empty();
 
     public native void setRadius(int val);
+    public native void setMotionModel(@Cast("cv::videostab::MotionModel") int val);
     public native void setFrames(@Const @ByRef MatVector val);
     public native void setMotions(@Const @ByRef MatVector val);
     public native void setStabilizedFrames(@Const @ByRef MatVector val);
     public native void setStabilizationMotions(@Const @ByRef MatVector val);
-
-    public native void update();
 
     public native void inpaint(int idx, @ByRef Mat frame, @ByRef Mat mask);
 }
@@ -938,13 +1254,15 @@ public static final int
         return (ColorInpainter)super.position(position);
     }
 
-    public ColorInpainter(int method/*=INPAINT_TELEA*/, double _radius/*=2.*/) { allocate(method, _radius); }
-    private native void allocate(int method/*=INPAINT_TELEA*/, double _radius/*=2.*/);
+    public ColorInpainter(int method/*=INPAINT_TELEA*/, double radius/*=2.*/) { allocate(method, radius); }
+    private native void allocate(int method/*=INPAINT_TELEA*/, double radius/*=2.*/);
     public ColorInpainter() { allocate(); }
     private native void allocate();
 
     public native void inpaint(int idx, @ByRef Mat frame, @ByRef Mat mask);
 }
+
+
 
 @Namespace("cv::videostab") public static native void calcFlowMask(
         @Const @ByRef Mat flowX, @Const @ByRef Mat flowY, @Const @ByRef Mat errors, float maxError,
@@ -1008,7 +1326,7 @@ public static final int
 // #define __OPENCV_VIDEOSTAB_DEBLURRING_HPP__
 
 // #include <vector>
-// #include "opencv2/core/core.hpp"
+// #include "opencv2/core.hpp"
 
 @Namespace("cv::videostab") public static native float calcBlurriness(@Const @ByRef Mat frame);
 
@@ -1023,6 +1341,11 @@ public static final int
     public native void setRadius(int val);
     public native int radius();
 
+    public native void deblur(int idx, @ByRef Mat frame);
+
+
+    // data from stabilizer
+
     public native void setFrames(@Const @ByRef MatVector val);
     public native @Const @ByRef MatVector frames();
 
@@ -1033,10 +1356,6 @@ public static final int
     public native void setBlurrinessRates(@StdVector FloatBuffer val);
     public native void setBlurrinessRates(@StdVector float[] val);
     public native @StdVector FloatPointer blurrinessRates();
-
-    public native void update();
-
-    public native void deblur(int idx, @ByRef Mat frame);
 }
 
 @Namespace("cv::videostab") public static class NullDeblurer extends DeblurerBase {
@@ -1075,6 +1394,142 @@ public static final int
 
     public native void deblur(int idx, @ByRef Mat frame);
 }
+
+ // namespace videostab
+ // namespace cv
+
+// #endif
+
+
+// Parsed from <opencv2/videostab/wobble_suppression.hpp>
+
+/*M///////////////////////////////////////////////////////////////////////////////////////
+//
+//  IMPORTANT: READ BEFORE DOWNLOADING, COPYING, INSTALLING OR USING.
+//
+//  By downloading, copying, installing or using the software you agree to this license.
+//  If you do not agree to this license, do not download, install,
+//  copy or use the software.
+//
+//
+//                           License Agreement
+//                For Open Source Computer Vision Library
+//
+// Copyright (C) 2000-2008, Intel Corporation, all rights reserved.
+// Copyright (C) 2009-2011, Willow Garage Inc., all rights reserved.
+// Third party copyrights are property of their respective owners.
+//
+// Redistribution and use in source and binary forms, with or without modification,
+// are permitted provided that the following conditions are met:
+//
+//   * Redistribution's of source code must retain the above copyright notice,
+//     this list of conditions and the following disclaimer.
+//
+//   * Redistribution's in binary form must reproduce the above copyright notice,
+//     this list of conditions and the following disclaimer in the documentation
+//     and/or other materials provided with the distribution.
+//
+//   * The name of the copyright holders may not be used to endorse or promote products
+//     derived from this software without specific prior written permission.
+//
+// This software is provided by the copyright holders and contributors "as is" and
+// any express or implied warranties, including, but not limited to, the implied
+// warranties of merchantability and fitness for a particular purpose are disclaimed.
+// In no event shall the Intel Corporation or contributors be liable for any direct,
+// indirect, incidental, special, exemplary, or consequential damages
+// (including, but not limited to, procurement of substitute goods or services;
+// loss of use, data, or profits; or business interruption) however caused
+// and on any theory of liability, whether in contract, strict liability,
+// or tort (including negligence or otherwise) arising in any way out of
+// the use of this software, even if advised of the possibility of such damage.
+//
+//M*/
+
+// #ifndef __OPENCV_VIDEOSTAB_WOBBLE_SUPPRESSION_HPP__
+// #define __OPENCV_VIDEOSTAB_WOBBLE_SUPPRESSION_HPP__
+
+// #include <vector>
+// #include "opencv2/core.hpp"
+// #include "opencv2/core/cuda.hpp"
+// #include "opencv2/videostab/global_motion.hpp"
+// #include "opencv2/videostab/log.hpp"
+
+@Namespace("cv::videostab") @NoOffset public static class WobbleSuppressorBase extends Pointer {
+    static { Loader.load(); }
+    /** Empty constructor. */
+    public WobbleSuppressorBase() { }
+    /** Pointer cast constructor. Invokes {@link Pointer#Pointer(Pointer)}. */
+    public WobbleSuppressorBase(Pointer p) { super(p); }
+
+
+    public native void setMotionEstimator(@Ptr ImageMotionEstimatorBase val);
+    public native @Ptr ImageMotionEstimatorBase motionEstimator();
+
+    public native void suppress(int idx, @Const @ByRef Mat frame, @ByRef Mat result);
+
+
+    // data from stabilizer
+
+    public native void setFrameCount(int val);
+    public native int frameCount();
+
+    public native void setMotions(@Const @ByRef MatVector val);
+    public native @Const @ByRef MatVector motions();
+
+    public native void setMotions2(@Const @ByRef MatVector val);
+    public native @Const @ByRef MatVector motions2();
+
+    public native void setStabilizationMotions(@Const @ByRef MatVector val);
+    public native @Const @ByRef MatVector stabilizationMotions();
+}
+
+@Namespace("cv::videostab") public static class NullWobbleSuppressor extends WobbleSuppressorBase {
+    static { Loader.load(); }
+    /** Default native constructor. */
+    public NullWobbleSuppressor() { allocate(); }
+    /** Native array allocator. Access with {@link Pointer#position(int)}. */
+    public NullWobbleSuppressor(int size) { allocateArray(size); }
+    /** Pointer cast constructor. Invokes {@link Pointer#Pointer(Pointer)}. */
+    public NullWobbleSuppressor(Pointer p) { super(p); }
+    private native void allocate();
+    private native void allocateArray(int size);
+    @Override public NullWobbleSuppressor position(int position) {
+        return (NullWobbleSuppressor)super.position(position);
+    }
+
+    public native void suppress(int idx, @Const @ByRef Mat frame, @ByRef Mat result);
+}
+
+@Namespace("cv::videostab") @NoOffset public static class MoreAccurateMotionWobbleSuppressorBase extends WobbleSuppressorBase {
+    static { Loader.load(); }
+    /** Empty constructor. */
+    public MoreAccurateMotionWobbleSuppressorBase() { }
+    /** Pointer cast constructor. Invokes {@link Pointer#Pointer(Pointer)}. */
+    public MoreAccurateMotionWobbleSuppressorBase(Pointer p) { super(p); }
+
+    public native void setPeriod(int val);
+    public native int period();
+}
+
+@Namespace("cv::videostab") public static class MoreAccurateMotionWobbleSuppressor extends MoreAccurateMotionWobbleSuppressorBase {
+    static { Loader.load(); }
+    /** Default native constructor. */
+    public MoreAccurateMotionWobbleSuppressor() { allocate(); }
+    /** Native array allocator. Access with {@link Pointer#position(int)}. */
+    public MoreAccurateMotionWobbleSuppressor(int size) { allocateArray(size); }
+    /** Pointer cast constructor. Invokes {@link Pointer#Pointer(Pointer)}. */
+    public MoreAccurateMotionWobbleSuppressor(Pointer p) { super(p); }
+    private native void allocate();
+    private native void allocateArray(int size);
+    @Override public MoreAccurateMotionWobbleSuppressor position(int position) {
+        return (MoreAccurateMotionWobbleSuppressor)super.position(position);
+    }
+
+    public native void suppress(int idx, @Const @ByRef Mat frame, @ByRef Mat result);
+}
+
+// #if defined(HAVE_OPENCV_CUDA) && defined(HAVE_OPENCV_CUDAWARPING)
+// #endif
 
  // namespace videostab
  // namespace cv
@@ -1130,14 +1585,16 @@ public static final int
 // #define __OPENCV_VIDEOSTAB_STABILIZER_HPP__
 
 // #include <vector>
-// #include "opencv2/core/core.hpp"
-// #include "opencv2/imgproc/imgproc.hpp"
+// #include <ctime>
+// #include "opencv2/core.hpp"
+// #include "opencv2/imgproc.hpp"
 // #include "opencv2/videostab/global_motion.hpp"
 // #include "opencv2/videostab/motion_stabilizing.hpp"
 // #include "opencv2/videostab/frame_source.hpp"
 // #include "opencv2/videostab/log.hpp"
 // #include "opencv2/videostab/inpainting.hpp"
 // #include "opencv2/videostab/deblurring.hpp"
+// #include "opencv2/videostab/wobble_suppression.hpp"
 
 @Namespace("cv::videostab") @NoOffset public static class StabilizerBase extends Pointer {
     static { Loader.load(); }
@@ -1147,7 +1604,7 @@ public static final int
     public StabilizerBase(Pointer p) { super(p); }
 
 
-    public native void setLog(@Ptr ILog _log);
+    public native void setLog(@Ptr ILog ilog);
     public native @Ptr ILog log();
 
     public native void setRadius(int val);
@@ -1156,8 +1613,8 @@ public static final int
     public native void setFrameSource(@Ptr IFrameSource val);
     public native @Ptr IFrameSource frameSource();
 
-    public native void setMotionEstimator(@Ptr IGlobalMotionEstimator val);
-    public native @Ptr IGlobalMotionEstimator motionEstimator();
+    public native void setMotionEstimator(@Ptr ImageMotionEstimatorBase val);
+    public native @Ptr ImageMotionEstimatorBase motionEstimator();
 
     public native void setDeblurer(@Ptr DeblurerBase val);
     public native @Ptr DeblurerBase deblurrer();
@@ -1217,14 +1674,14 @@ public static final int
     public native void setMotionStabilizer(@Ptr IMotionStabilizer val);
     public native @Ptr IMotionStabilizer motionStabilizer();
 
+    public native void setWobbleSuppressor(@Ptr WobbleSuppressorBase val);
+    public native @Ptr WobbleSuppressorBase wobbleSuppressor();
+
     public native void setEstimateTrimRatio(@Cast("bool") boolean val);
     public native @Cast("bool") boolean mustEstimateTrimaRatio();
 
     public native void reset();
     public native @ByVal Mat nextFrame();
-
-    // available after pre-pass, before it's empty
-    public native @ByVal MatVector motions();
 }
 
  // namespace videostab
@@ -1233,7 +1690,7 @@ public static final int
 // #endif
 
 
-// Parsed from <opencv2/videostab/videostab.hpp>
+// Parsed from <opencv2/videostab/ring_buffer.hpp>
 
 /*M///////////////////////////////////////////////////////////////////////////////////////
 //
@@ -1277,10 +1734,73 @@ public static final int
 //
 //M*/
 
+// #ifndef __OPENCV_VIDEOSTAB_RING_BUFFER_HPP__
+// #define __OPENCV_VIDEOSTAB_RING_BUFFER_HPP__
+
+// #include <vector>
+// #include "opencv2/imgproc.hpp"
+
+ // namespace videostab
+ // namespace cv
+
+// #endif
+
+
+// Parsed from <opencv2/videostab.hpp>
+
+/*M///////////////////////////////////////////////////////////////////////////////////////
+//
+//  IMPORTANT: READ BEFORE DOWNLOADING, COPYING, INSTALLING OR USING.
+//
+//  By downloading, copying, installing or using the software you agree to this license.
+//  If you do not agree to this license, do not download, install,
+//  copy or use the software.
+//
+//
+//                           License Agreement
+//                For Open Source Computer Vision Library
+//
+// Copyright (C) 2000-2008, Intel Corporation, all rights reserved.
+// Copyright (C) 2009-2011, Willow Garage Inc., all rights reserved.
+// Third party copyrights are property of their respective owners.
+//
+// Redistribution and use in source and binary forms, with or without modification,
+// are permitted provided that the following conditions are met:
+//
+//   * Redistribution's of source code must retain the above copyright notice,
+//     this list of conditions and the following disclaimer.
+//
+//   * Redistribution's in binary form must reproduce the above copyright notice,
+//     this list of conditions and the following disclaimer in the documentation
+//     and/or other materials provided with the distribution.
+//
+//   * The name of the copyright holders may not be used to endorse or promote products
+//     derived from this software without specific prior written permission.
+//
+// This software is provided by the copyright holders and contributors "as is" and
+// any express or implied warranties, including, but not limited to, the implied
+// warranties of merchantability and fitness for a particular purpose are disclaimed.
+// In no event shall the Intel Corporation or contributors be liable for any direct,
+// indirect, incidental, special, exemplary, or consequential damages
+// (including, but not limited to, procurement of substitute goods or services;
+// loss of use, data, or profits; or business interruption) however caused
+// and on any theory of liability, whether in contract, strict liability,
+// or tort (including negligence or otherwise) arising in any way out of
+// the use of this software, even if advised of the possibility of such damage.
+//
+//M*/
+
+// REFERENCES
+// 1. "Full-Frame Video Stabilization with Motion Inpainting"
+//     Yasuyuki Matsushita, Eyal Ofek, Weina Ge, Xiaoou Tang, Senior Member, and Heung-Yeung Shum
+// 2. "Auto-Directed Video Stabilization with Robust L1 Optimal Camera Paths"
+//     Matthias Grundmann, Vivek Kwatra, Irfan Essa
+
 // #ifndef __OPENCV_VIDEOSTAB_HPP__
 // #define __OPENCV_VIDEOSTAB_HPP__
 
 // #include "opencv2/videostab/stabilizer.hpp"
+// #include "opencv2/videostab/ring_buffer.hpp"
 
 // #endif
 

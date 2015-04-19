@@ -9,36 +9,18 @@ import org.bytedeco.javacpp.annotation.*;
 
 import static org.bytedeco.javacpp.opencv_core.*;
 import static org.bytedeco.javacpp.opencv_imgproc.*;
+import static org.bytedeco.javacpp.opencv_imgcodecs.*;
+import static org.bytedeco.javacpp.opencv_videoio.*;
 import static org.bytedeco.javacpp.opencv_highgui.*;
 import static org.bytedeco.javacpp.opencv_flann.*;
+import static org.bytedeco.javacpp.opencv_ml.*;
 import static org.bytedeco.javacpp.opencv_features2d.*;
 import static org.bytedeco.javacpp.opencv_calib3d.*;
 import static org.bytedeco.javacpp.opencv_objdetect.*;
-import static org.bytedeco.javacpp.opencv_photo.*;
-import static org.bytedeco.javacpp.opencv_ml.*;
 import static org.bytedeco.javacpp.opencv_video.*;
-import static org.bytedeco.javacpp.opencv_legacy.*;
-import static org.bytedeco.javacpp.opencv_nonfree.*;
 
 public class opencv_stitching extends org.bytedeco.javacpp.presets.opencv_stitching {
     static { Loader.load(); }
-
-@Name("std::vector<std::pair<cv::Mat,unsigned char> >") public static class MatBytePairVector extends Pointer {
-    static { Loader.load(); }
-    /** Pointer cast constructor. Invokes {@link Pointer#Pointer(Pointer)}. */
-    public MatBytePairVector(Pointer p) { super(p); }
-    public MatBytePairVector()       { allocate();  }
-    public MatBytePairVector(long n) { allocate(n); }
-    private native void allocate();
-    private native void allocate(@Cast("size_t") long n);
-    public native @Name("operator=") @ByRef MatBytePairVector put(@ByRef MatBytePairVector x);
-
-    public native long size();
-    public native void resize(@Cast("size_t") long n);
-
-    @Index public native @ByRef Mat first(@Cast("size_t") long i); public native MatBytePairVector first(@Cast("size_t") long i, Mat first);
-    @Index public native byte second(@Cast("size_t") long i);  public native MatBytePairVector second(@Cast("size_t") long i, byte second);
-}
 
 // Parsed from <opencv2/stitching/detail/warpers.hpp>
 
@@ -87,9 +69,10 @@ public class opencv_stitching extends org.bytedeco.javacpp.presets.opencv_stitch
 // #ifndef __OPENCV_STITCHING_WARPERS_HPP__
 // #define __OPENCV_STITCHING_WARPERS_HPP__
 
-// #include "opencv2/core/core.hpp"
-// #include "opencv2/core/gpumat.hpp"
-// #include "opencv2/imgproc/imgproc.hpp"
+// #include "opencv2/core.hpp"
+// #include "opencv2/core/cuda.hpp"
+// #include "opencv2/imgproc.hpp"
+// #include "opencv2/opencv_modules.hpp"
 
 @Namespace("cv::detail") public static class RotationWarper extends Pointer {
     static { Loader.load(); }
@@ -99,17 +82,17 @@ public class opencv_stitching extends org.bytedeco.javacpp.presets.opencv_stitch
     public RotationWarper(Pointer p) { super(p); }
 
 
-    public native @ByVal Point2f warpPoint(@Const @ByRef Point2f pt, @Const @ByRef Mat K, @Const @ByRef Mat R);
+    public native @ByVal Point2f warpPoint(@Const @ByRef Point2f pt, @ByVal MatVector K, @ByVal MatVector R);
 
-    public native @ByVal Rect buildMaps(@ByVal Size src_size, @Const @ByRef Mat K, @Const @ByRef Mat R, @ByRef Mat xmap, @ByRef Mat ymap);
+    public native @ByVal Rect buildMaps(@ByVal Size src_size, @ByVal MatVector K, @ByVal MatVector R, @ByVal Mat xmap, @ByVal Mat ymap);
 
-    public native @ByVal Point warp(@Const @ByRef Mat src, @Const @ByRef Mat K, @Const @ByRef Mat R, int interp_mode, int border_mode,
-                           @ByRef Mat dst);
+    public native @ByVal Point warp(@ByVal MatVector src, @ByVal MatVector K, @ByVal MatVector R, int interp_mode, int border_mode,
+                           @ByVal Mat dst);
 
-    public native void warpBackward(@Const @ByRef Mat src, @Const @ByRef Mat K, @Const @ByRef Mat R, int interp_mode, int border_mode,
-                                  @ByVal Size dst_size, @ByRef Mat dst);
+    public native void warpBackward(@ByVal MatVector src, @ByVal MatVector K, @ByVal MatVector R, int interp_mode, int border_mode,
+                                  @ByVal Size dst_size, @ByVal Mat dst);
 
-    public native @ByVal Rect warpRoi(@ByVal Size src_size, @Const @ByRef Mat K, @Const @ByRef Mat R);
+    public native @ByVal Rect warpRoi(@ByVal Size src_size, @ByVal MatVector K, @ByVal MatVector R);
 
     public native float getScale();
     public native void setScale(float arg0);
@@ -130,9 +113,9 @@ public class opencv_stitching extends org.bytedeco.javacpp.presets.opencv_stitch
         return (ProjectorBase)super.position(position);
     }
 
-    public native void setCameraParams(@Const @ByRef Mat K/*=Mat::eye(3, 3, CV_32F)*/,
-                             @Const @ByRef Mat R/*=Mat::eye(3, 3, CV_32F)*/,
-                             @Const @ByRef Mat T/*=Mat::zeros(3, 1, CV_32F)*/);
+    public native void setCameraParams(@ByVal MatVector K/*=Mat::eye(3, 3, CV_32F)*/,
+                             @ByVal MatVector R/*=Mat::eye(3, 3, CV_32F)*/,
+                             @ByVal MatVector T/*=Mat::zeros(3, 1, CV_32F)*/);
     public native void setCameraParams();
 
     public native float scale(); public native ProjectorBase scale(float scale);
@@ -188,16 +171,15 @@ public class opencv_stitching extends org.bytedeco.javacpp.presets.opencv_stitch
     public DetailPlaneWarper() { allocate(); }
     private native void allocate();
 
-    public native void setScale(float scale);
+    public native @ByVal Point2f warpPoint(@Const @ByRef Point2f pt, @ByVal MatVector K, @ByVal MatVector R, @ByVal MatVector T);
 
-    public native @ByVal Point2f warpPoint(@Const @ByRef Point2f pt, @Const @ByRef Mat K, @Const @ByRef Mat R, @Const @ByRef Mat T);
+    public native @ByVal Rect buildMaps(@ByVal Size src_size, @ByVal MatVector K, @ByVal MatVector R, @ByVal MatVector T, @ByVal Mat xmap, @ByVal Mat ymap);
+    public native @ByVal Rect buildMaps(@ByVal Size src_size, @ByVal MatVector K, @ByVal MatVector R, @ByVal Mat xmap, @ByVal Mat ymap);
 
-    public native @ByVal Rect buildMaps(@ByVal Size src_size, @Const @ByRef Mat K, @Const @ByRef Mat R, @Const @ByRef Mat T, @ByRef Mat xmap, @ByRef Mat ymap);
+    public native @ByVal Point warp(@ByVal MatVector src, @ByVal MatVector K, @ByVal MatVector R, @ByVal MatVector T, int interp_mode, int border_mode,
+                   @ByVal Mat dst);
 
-    public native @ByVal Point warp(@Const @ByRef Mat src, @Const @ByRef Mat K, @Const @ByRef Mat R, @Const @ByRef Mat T, int interp_mode, int border_mode,
-                   @ByRef Mat dst);
-
-    public native @ByVal Rect warpRoi(@ByVal Size src_size, @Const @ByRef Mat K, @Const @ByRef Mat R, @Const @ByRef Mat T);
+    public native @ByVal Rect warpRoi(@ByVal Size src_size, @ByVal MatVector K, @ByVal MatVector R, @ByVal MatVector T);
 }
 
 
@@ -235,6 +217,9 @@ public class opencv_stitching extends org.bytedeco.javacpp.presets.opencv_stitch
 
     public DetailSphericalWarper(float scale) { allocate(scale); }
     private native void allocate(float scale);
+
+    public native @ByVal Rect buildMaps(@ByVal Size src_size, @ByVal MatVector K, @ByVal MatVector R, @ByVal Mat xmap, @ByVal Mat ymap);
+    public native @ByVal Point warp(@ByVal MatVector src, @ByVal MatVector K, @ByVal MatVector R, int interp_mode, int border_mode, @ByVal Mat dst);
 }
 
 
@@ -271,6 +256,9 @@ public class opencv_stitching extends org.bytedeco.javacpp.presets.opencv_stitch
 
     public DetailCylindricalWarper(float scale) { allocate(scale); }
     private native void allocate(float scale);
+
+    public native @ByVal Rect buildMaps(@ByVal Size src_size, @ByVal MatVector K, @ByVal MatVector R, @ByVal Mat xmap, @ByVal Mat ymap);
+    public native @ByVal Point warp(@ByVal MatVector src, @ByVal MatVector K, @ByVal MatVector R, int interp_mode, int border_mode, @ByVal Mat dst);
 }
 
 
@@ -575,86 +563,8 @@ public class opencv_stitching extends org.bytedeco.javacpp.presets.opencv_stitch
 }
 
 
-@Platform(not="android") @Name("cv::detail::PlaneWarperGpu") @NoOffset public static class DetailPlaneWarperGpu extends RotationWarper {
-    static { Loader.load(); }
-    /** Pointer cast constructor. Invokes {@link Pointer#Pointer(Pointer)}. */
-    public DetailPlaneWarperGpu(Pointer p) { super(p); }
-    /** Native array allocator. Access with {@link Pointer#position(int)}. */
-    public DetailPlaneWarperGpu(int size) { allocateArray(size); }
-    private native void allocateArray(int size);
-    @Override public DetailPlaneWarperGpu position(int position) {
-        return (DetailPlaneWarperGpu)super.position(position);
-    }
-
-    public DetailPlaneWarperGpu(float scale/*=1.f*/) { allocate(scale); }
-    private native void allocate(float scale/*=1.f*/);
-    public DetailPlaneWarperGpu() { allocate(); }
-    private native void allocate();
-
-    public native @ByVal Rect buildMaps(@ByVal Size src_size, @Const @ByRef Mat K, @Const @ByRef Mat R, @ByRef Mat xmap, @ByRef Mat ymap);
-
-    public native @ByVal Rect buildMaps(@ByVal Size src_size, @Const @ByRef Mat K, @Const @ByRef Mat R, @Const @ByRef Mat T, @ByRef Mat xmap, @ByRef Mat ymap);
-
-    public native @ByVal Point warp(@Const @ByRef Mat src, @Const @ByRef Mat K, @Const @ByRef Mat R, int interp_mode, int border_mode,
-                   @ByRef Mat dst);
-
-    public native @ByVal Point warp(@Const @ByRef Mat src, @Const @ByRef Mat K, @Const @ByRef Mat R, @Const @ByRef Mat T, int interp_mode, int border_mode,
-                   @ByRef Mat dst);
-
-    public native @ByVal Rect buildMaps(@ByVal Size src_size, @Const @ByRef Mat K, @Const @ByRef Mat R, @ByRef GpuMat xmap, @ByRef GpuMat ymap);
-
-    public native @ByVal Rect buildMaps(@ByVal Size src_size, @Const @ByRef Mat K, @Const @ByRef Mat R, @Const @ByRef Mat T, @ByRef GpuMat xmap, @ByRef GpuMat ymap);
-
-    public native @ByVal Point warp(@Const @ByRef GpuMat src, @Const @ByRef Mat K, @Const @ByRef Mat R, int interp_mode, int border_mode,
-                   @ByRef GpuMat dst);
-
-    public native @ByVal Point warp(@Const @ByRef GpuMat src, @Const @ByRef Mat K, @Const @ByRef Mat R, @Const @ByRef Mat T, int interp_mode, int border_mode,
-                   @ByRef GpuMat dst);
-}
-
-
-@Platform(not="android") @Name("cv::detail::SphericalWarperGpu") @NoOffset public static class DetailSphericalWarperGpu extends RotationWarper {
-    static { Loader.load(); }
-    /** Empty constructor. */
-    public DetailSphericalWarperGpu() { }
-    /** Pointer cast constructor. Invokes {@link Pointer#Pointer(Pointer)}. */
-    public DetailSphericalWarperGpu(Pointer p) { super(p); }
-
-    public DetailSphericalWarperGpu(float scale) { allocate(scale); }
-    private native void allocate(float scale);
-
-    public native @ByVal Rect buildMaps(@ByVal Size src_size, @Const @ByRef Mat K, @Const @ByRef Mat R, @ByRef Mat xmap, @ByRef Mat ymap);
-
-    public native @ByVal Point warp(@Const @ByRef Mat src, @Const @ByRef Mat K, @Const @ByRef Mat R, int interp_mode, int border_mode,
-                   @ByRef Mat dst);
-
-    public native @ByVal Rect buildMaps(@ByVal Size src_size, @Const @ByRef Mat K, @Const @ByRef Mat R, @ByRef GpuMat xmap, @ByRef GpuMat ymap);
-
-    public native @ByVal Point warp(@Const @ByRef GpuMat src, @Const @ByRef Mat K, @Const @ByRef Mat R, int interp_mode, int border_mode,
-                   @ByRef GpuMat dst);
-}
-
-
-@Platform(not="android") @Name("cv::detail::CylindricalWarperGpu") @NoOffset public static class DetailCylindricalWarperGpu extends RotationWarper {
-    static { Loader.load(); }
-    /** Empty constructor. */
-    public DetailCylindricalWarperGpu() { }
-    /** Pointer cast constructor. Invokes {@link Pointer#Pointer(Pointer)}. */
-    public DetailCylindricalWarperGpu(Pointer p) { super(p); }
-
-    public DetailCylindricalWarperGpu(float scale) { allocate(scale); }
-    private native void allocate(float scale);
-
-    public native @ByVal Rect buildMaps(@ByVal Size src_size, @Const @ByRef Mat K, @Const @ByRef Mat R, @ByRef Mat xmap, @ByRef Mat ymap);
-
-    public native @ByVal Point warp(@Const @ByRef Mat src, @Const @ByRef Mat K, @Const @ByRef Mat R, int interp_mode, int border_mode,
-                   @ByRef Mat dst);
-
-    public native @ByVal Rect buildMaps(@ByVal Size src_size, @Const @ByRef Mat K, @Const @ByRef Mat R, @ByRef GpuMat xmap, @ByRef GpuMat ymap);
-
-    public native @ByVal Point warp(@Const @ByRef GpuMat src, @Const @ByRef Mat K, @Const @ByRef Mat R, int interp_mode, int border_mode,
-                   @ByRef GpuMat dst);
-}
+// #ifdef HAVE_OPENCV_CUDAWARPING
+// #endif
 
 
 @Namespace("cv::detail") public static class SphericalPortraitProjector extends Pointer {
@@ -816,14 +726,12 @@ public class opencv_stitching extends org.bytedeco.javacpp.presets.opencv_stitch
 // #ifndef __OPENCV_STITCHING_MATCHERS_HPP__
 // #define __OPENCV_STITCHING_MATCHERS_HPP__
 
-// #include "opencv2/core/core.hpp"
-// #include "opencv2/core/gpumat.hpp"
-// #include "opencv2/features2d/features2d.hpp"
+// #include "opencv2/core.hpp"
+// #include "opencv2/features2d.hpp"
 
 // #include "opencv2/opencv_modules.hpp"
 
-// #if defined(HAVE_OPENCV_NONFREE)
-//     #include "opencv2/nonfree/gpu.hpp"
+// #ifdef HAVE_OPENCV_XFEATURES2D
 // #endif
 
 @Namespace("cv::detail") public static class ImageFeatures extends Pointer {
@@ -843,7 +751,7 @@ public class opencv_stitching extends org.bytedeco.javacpp.presets.opencv_stitch
     public native int img_idx(); public native ImageFeatures img_idx(int img_idx);
     public native @ByRef Size img_size(); public native ImageFeatures img_size(Size img_size);
     public native @StdVector KeyPoint keypoints(); public native ImageFeatures keypoints(KeyPoint keypoints);
-    public native @ByRef Mat descriptors(); public native ImageFeatures descriptors(Mat descriptors);
+    public native @ByRef UMat descriptors(); public native ImageFeatures descriptors(UMat descriptors);
 }
 
 
@@ -854,8 +762,8 @@ public class opencv_stitching extends org.bytedeco.javacpp.presets.opencv_stitch
     /** Pointer cast constructor. Invokes {@link Pointer#Pointer(Pointer)}. */
     public FeaturesFinder(Pointer p) { super(p); }
 
-    public native @Name("operator()") void apply(@Const @ByRef Mat image, @ByRef ImageFeatures features);
-    public native @Name("operator()") void apply(@Const @ByRef Mat image, @ByRef ImageFeatures features, @StdVector Rect rois);
+    public native @Name("operator()") void apply(@ByVal MatVector image, @ByRef ImageFeatures features);
+    public native @Name("operator()") void apply(@ByVal MatVector image, @ByRef ImageFeatures features, @StdVector Rect rois);
     public native void collectGarbage();
 }
 
@@ -897,27 +805,7 @@ public class opencv_stitching extends org.bytedeco.javacpp.presets.opencv_stitch
 }
 
 
-// #if defined(HAVE_OPENCV_NONFREE)
-@Platform(not="android") @Namespace("cv::detail") @NoOffset public static class SurfFeaturesFinderGpu extends FeaturesFinder {
-    static { Loader.load(); }
-    /** Pointer cast constructor. Invokes {@link Pointer#Pointer(Pointer)}. */
-    public SurfFeaturesFinderGpu(Pointer p) { super(p); }
-    /** Native array allocator. Access with {@link Pointer#position(int)}. */
-    public SurfFeaturesFinderGpu(int size) { allocateArray(size); }
-    private native void allocateArray(int size);
-    @Override public SurfFeaturesFinderGpu position(int position) {
-        return (SurfFeaturesFinderGpu)super.position(position);
-    }
-
-    public SurfFeaturesFinderGpu(double hess_thresh/*=300.*/, int num_octaves/*=3*/, int num_layers/*=4*/,
-                              int num_octaves_descr/*=4*/, int num_layers_descr/*=2*/) { allocate(hess_thresh, num_octaves, num_layers, num_octaves_descr, num_layers_descr); }
-    private native void allocate(double hess_thresh/*=300.*/, int num_octaves/*=3*/, int num_layers/*=4*/,
-                              int num_octaves_descr/*=4*/, int num_layers_descr/*=2*/);
-    public SurfFeaturesFinderGpu() { allocate(); }
-    private native void allocate();
-
-    public native void collectGarbage();
-}
+// #ifdef HAVE_OPENCV_XFEATURES2D
 // #endif
 
 
@@ -960,7 +848,7 @@ public class opencv_stitching extends org.bytedeco.javacpp.presets.opencv_stitch
                          @ByRef MatchesInfo matches_info);
 
     public native @Name("operator()") void apply(@StdVector ImageFeatures features, @StdVector MatchesInfo pairwise_matches,
-                         @Const @ByRef Mat mask/*=cv::Mat()*/);
+                         @Const @ByRef UMat mask/*=cv::UMat()*/);
     public native @Name("operator()") void apply(@StdVector ImageFeatures features, @StdVector MatchesInfo pairwise_matches);
 
     public native @Cast("bool") boolean isThreadSafe();
@@ -988,6 +876,29 @@ public class opencv_stitching extends org.bytedeco.javacpp.presets.opencv_stitch
     private native void allocate();
 
     public native void collectGarbage();
+}
+
+@Namespace("cv::detail") @NoOffset public static class BestOf2NearestRangeMatcher extends BestOf2NearestMatcher {
+    static { Loader.load(); }
+    /** Pointer cast constructor. Invokes {@link Pointer#Pointer(Pointer)}. */
+    public BestOf2NearestRangeMatcher(Pointer p) { super(p); }
+    /** Native array allocator. Access with {@link Pointer#position(int)}. */
+    public BestOf2NearestRangeMatcher(int size) { allocateArray(size); }
+    private native void allocateArray(int size);
+    @Override public BestOf2NearestRangeMatcher position(int position) {
+        return (BestOf2NearestRangeMatcher)super.position(position);
+    }
+
+    public BestOf2NearestRangeMatcher(int range_width/*=5*/, @Cast("bool") boolean try_use_gpu/*=false*/, float match_conf/*=0.3f*/,
+                                int num_matches_thresh1/*=6*/, int num_matches_thresh2/*=6*/) { allocate(range_width, try_use_gpu, match_conf, num_matches_thresh1, num_matches_thresh2); }
+    private native void allocate(int range_width/*=5*/, @Cast("bool") boolean try_use_gpu/*=false*/, float match_conf/*=0.3f*/,
+                                int num_matches_thresh1/*=6*/, int num_matches_thresh2/*=6*/);
+    public BestOf2NearestRangeMatcher() { allocate(); }
+    private native void allocate();
+
+    public native @Name("operator()") void apply(@StdVector ImageFeatures features, @StdVector MatchesInfo pairwise_matches,
+                         @Const @ByRef UMat mask/*=cv::UMat()*/);
+    public native @Name("operator()") void apply(@StdVector ImageFeatures features, @StdVector MatchesInfo pairwise_matches);
 }
 
  // namespace detail
@@ -1044,9 +955,11 @@ public class opencv_stitching extends org.bytedeco.javacpp.presets.opencv_stitch
 // #define __OPENCV_STITCHING_UTIL_HPP__
 
 // #include <list>
-// #include "opencv2/core/core.hpp"
+// #include "opencv2/core.hpp"
 
+// #ifndef ENABLE_LOG
 public static final int ENABLE_LOG = 0;
+// #endif
 
 // TODO remove LOG macros, add logging class
 // #if ENABLE_LOG
@@ -1056,7 +969,7 @@ public static final int ENABLE_LOG = 0;
 //   #include <android/log.h>
 //   #define LOG_STITCHING_MSG(msg)
 //     do {
-//         std::stringstream _os;
+//         Stringstream _os;
 //         _os << msg;
 //        __android_log_print(ANDROID_LOG_DEBUG, "STITCHING", "%s", _os.str().c_str());
 //     } while(0);
@@ -1071,6 +984,7 @@ public static final int ENABLE_LOG = 0;
 // #define LOG_(_level, _msg)
 //     for(;;)
 //     {
+//         using namespace std;
 //         if ((_level) >= ::cv::detail::stitchingLogLevel())
 //         {
 //             LOG_STITCHING_MSG(_msg);
@@ -1151,8 +1065,9 @@ public static final int ENABLE_LOG = 0;
 // Auxiliary functions
 
 @Namespace("cv::detail") public static native @Cast("bool") boolean overlapRoi(@ByVal Point tl1, @ByVal Point tl2, @ByVal Size sz1, @ByVal Size sz2, @ByRef Rect roi);
-@Namespace("cv::detail") public static native @ByVal Rect resultRoi(@StdVector Point corners, @Const @ByRef MatVector images);
+@Namespace("cv::detail") public static native @ByVal Rect resultRoi(@StdVector Point corners, @StdVector UMat images);
 @Namespace("cv::detail") public static native @ByVal Rect resultRoi(@StdVector Point corners, @StdVector Size sizes);
+@Namespace("cv::detail") public static native @ByVal Rect resultRoiIntersection(@StdVector Point corners, @StdVector Size sizes);
 @Namespace("cv::detail") public static native @ByVal Point resultTl(@StdVector Point corners);
 
 // Returns random 'count' element subset of the {0,1,...,size-1} set
@@ -1217,7 +1132,7 @@ public static final int ENABLE_LOG = 0;
 // #ifndef __OPENCV_STITCHING_CAMERA_HPP__
 // #define __OPENCV_STITCHING_CAMERA_HPP__
 
-// #include "opencv2/core/core.hpp"
+// #include "opencv2/core.hpp"
 
 @Namespace("cv::detail") @NoOffset public static class CameraParams extends Pointer {
     static { Loader.load(); }
@@ -1298,7 +1213,7 @@ public static final int ENABLE_LOG = 0;
 // #ifndef __OPENCV_STITCHING_MOTION_ESTIMATORS_HPP__
 // #define __OPENCV_STITCHING_MOTION_ESTIMATORS_HPP__
 
-// #include "opencv2/core/core.hpp"
+// #include "opencv2/core.hpp"
 // #include "matchers.hpp"
 // #include "util.hpp"
 // #include "camera.hpp"
@@ -1311,7 +1226,8 @@ public static final int ENABLE_LOG = 0;
     public Estimator(Pointer p) { super(p); }
 
 
-    public native @Name("operator()") void apply(@StdVector ImageFeatures features, @StdVector MatchesInfo pairwise_matches,
+    public native @Cast("bool") @Name("operator()") boolean apply(@StdVector ImageFeatures features,
+                         @StdVector MatchesInfo pairwise_matches,
                          @StdVector CameraParams cameras);
 }
 
@@ -1347,8 +1263,8 @@ public static final int ENABLE_LOG = 0;
     public native double confThresh();
     public native void setConfThresh(double conf_thresh);
 
-    public native @ByVal CvTermCriteria termCriteria();
-    public native void setTermCriteria(@Const @ByRef CvTermCriteria term_criteria);
+    public native @ByVal TermCriteria termCriteria();
+    public native void setTermCriteria(@Const @ByRef TermCriteria term_criteria);
 }
 
 
@@ -1401,18 +1317,23 @@ public static final int
 // Auxiliary functions
 
 // Returns matches graph representation in DOT language
-@Namespace("cv::detail") public static native @StdString BytePointer matchesGraphAsString(@ByRef StringVector pathes, @StdVector MatchesInfo pairwise_matches,
+@Namespace("cv::detail") public static native @Str BytePointer matchesGraphAsString(@ByRef StringVector pathes, @StdVector MatchesInfo pairwise_matches,
                                             float conf_threshold);
 
-@Namespace("cv::detail") public static native @StdVector IntPointer leaveBiggestComponent(@StdVector ImageFeatures features, @StdVector MatchesInfo pairwise_matches,
-                                                  float conf_threshold);
+@Namespace("cv::detail") public static native @StdVector IntPointer leaveBiggestComponent(
+        @StdVector ImageFeatures features,
+        @StdVector MatchesInfo pairwise_matches,
+        float conf_threshold);
 
-@Namespace("cv::detail") public static native void findMaxSpanningTree(int num_images, @StdVector MatchesInfo pairwise_matches,
-                                    @ByRef Graph span_tree, @StdVector IntPointer centers);
-@Namespace("cv::detail") public static native void findMaxSpanningTree(int num_images, @StdVector MatchesInfo pairwise_matches,
-                                    @ByRef Graph span_tree, @StdVector IntBuffer centers);
-@Namespace("cv::detail") public static native void findMaxSpanningTree(int num_images, @StdVector MatchesInfo pairwise_matches,
-                                    @ByRef Graph span_tree, @StdVector int[] centers);
+@Namespace("cv::detail") public static native void findMaxSpanningTree(
+        int num_images, @StdVector MatchesInfo pairwise_matches,
+        @ByRef Graph span_tree, @StdVector IntPointer centers);
+@Namespace("cv::detail") public static native void findMaxSpanningTree(
+        int num_images, @StdVector MatchesInfo pairwise_matches,
+        @ByRef Graph span_tree, @StdVector IntBuffer centers);
+@Namespace("cv::detail") public static native void findMaxSpanningTree(
+        int num_images, @StdVector MatchesInfo pairwise_matches,
+        @ByRef Graph span_tree, @StdVector int[] centers);
 
  // namespace detail
  // namespace cv
@@ -1467,7 +1388,7 @@ public static final int
 // #ifndef __OPENCV_STITCHING_EXPOSURE_COMPENSATE_HPP__
 // #define __OPENCV_STITCHING_EXPOSURE_COMPENSATE_HPP__
 
-// #include "opencv2/core/core.hpp"
+// #include "opencv2/core.hpp"
 
 @Namespace("cv::detail") public static class ExposureCompensator extends Pointer {
     static { Loader.load(); }
@@ -1481,11 +1402,11 @@ public static final int
     public static final int NO = 0, GAIN = 1, GAIN_BLOCKS = 2;
     public static native @Ptr ExposureCompensator createDefault(int type);
 
-    public native void feed(@StdVector Point corners, @Const @ByRef MatVector images,
-                  @Const @ByRef MatVector masks);
-    public native void feed(@StdVector Point corners, @Const @ByRef MatVector images,
-                          @Const @ByRef MatBytePairVector masks);
-    public native void apply(int index, @ByVal Point corner, @ByRef Mat image, @Const @ByRef Mat mask);
+    public native void feed(@StdVector Point corners, @StdVector UMat images,
+                  @StdVector UMat masks);
+    public native void feed(@StdVector Point corners, @StdVector UMat images,
+                          @Const @ByRef UMatBytePairVector masks);
+    public native void apply(int index, @ByVal Point corner, @ByVal Mat image, @ByVal MatVector mask);
 }
 
 
@@ -1503,9 +1424,9 @@ public static final int
         return (NoExposureCompensator)super.position(position);
     }
 
-    public native void feed(@StdVector Point arg0, @Const @ByRef MatVector arg1,
-                  @Const @ByRef MatBytePairVector arg2);
-    public native void apply(int arg0, @ByVal Point arg1, @ByRef Mat arg2, @Const @ByRef Mat arg3);
+    public native void feed(@StdVector Point arg0, @StdVector UMat arg1,
+                  @Const @ByRef UMatBytePairVector arg2);
+    public native void apply(int arg0, @ByVal Point arg1, @ByVal Mat arg2, @ByVal MatVector arg3);
 }
 
 
@@ -1523,9 +1444,9 @@ public static final int
         return (GainCompensator)super.position(position);
     }
 
-    public native void feed(@StdVector Point corners, @Const @ByRef MatVector images,
-                  @Const @ByRef MatBytePairVector masks);
-    public native void apply(int index, @ByVal Point corner, @ByRef Mat image, @Const @ByRef Mat mask);
+    public native void feed(@StdVector Point corners, @StdVector UMat images,
+                  @Const @ByRef UMatBytePairVector masks);
+    public native void apply(int index, @ByVal Point corner, @ByVal Mat image, @ByVal MatVector mask);
     public native @StdVector DoublePointer gains();
 }
 
@@ -1545,9 +1466,9 @@ public static final int
     private native void allocate(int bl_width/*=32*/, int bl_height/*=32*/);
     public BlocksGainCompensator() { allocate(); }
     private native void allocate();
-    public native void feed(@StdVector Point corners, @Const @ByRef MatVector images,
-                  @Const @ByRef MatBytePairVector masks);
-    public native void apply(int index, @ByVal Point corner, @ByRef Mat image, @Const @ByRef Mat mask);
+    public native void feed(@StdVector Point corners, @StdVector UMat images,
+                  @Const @ByRef UMatBytePairVector masks);
+    public native void apply(int index, @ByVal Point corner, @ByVal Mat image, @ByVal MatVector mask);
 }
 
  // namespace detail
@@ -1604,8 +1525,8 @@ public static final int
 // #define __OPENCV_STITCHING_SEAM_FINDERS_HPP__
 
 // #include <set>
-// #include "opencv2/core/core.hpp"
-// #include "opencv2/core/gpumat.hpp"
+// #include "opencv2/core.hpp"
+// #include "opencv2/opencv_modules.hpp"
 
 @Namespace("cv::detail") public static class SeamFinder extends Pointer {
     static { Loader.load(); }
@@ -1614,8 +1535,8 @@ public static final int
     /** Pointer cast constructor. Invokes {@link Pointer#Pointer(Pointer)}. */
     public SeamFinder(Pointer p) { super(p); }
 
-    public native void find(@Const @ByRef MatVector src, @StdVector Point corners,
-                          @ByRef MatVector masks);
+    public native void find(@StdVector UMat src, @StdVector Point corners,
+                          @StdVector UMat masks);
 }
 
 
@@ -1633,7 +1554,7 @@ public static final int
         return (NoSeamFinder)super.position(position);
     }
 
-    public native void find(@Const @ByRef MatVector arg0, @StdVector Point arg1, @ByRef MatVector arg2);
+    public native void find(@StdVector UMat arg0, @StdVector Point arg1, @StdVector UMat arg2);
 }
 
 
@@ -1644,8 +1565,8 @@ public static final int
     /** Pointer cast constructor. Invokes {@link Pointer#Pointer(Pointer)}. */
     public PairwiseSeamFinder(Pointer p) { super(p); }
 
-    public native void find(@Const @ByRef MatVector src, @StdVector Point corners,
-                          @ByRef MatVector masks);
+    public native void find(@StdVector UMat src, @StdVector Point corners,
+                          @StdVector UMat masks);
 }
 
 
@@ -1664,7 +1585,7 @@ public static final int
     }
 
     public native void find(@StdVector Size size, @StdVector Point corners,
-                          @ByRef MatVector masks);
+                          @StdVector UMat masks);
 }
 
 
@@ -1684,8 +1605,8 @@ public static final int
     public native @Cast("cv::detail::DpSeamFinder::CostFunction") int costFunction();
     public native void setCostFunction(@Cast("cv::detail::DpSeamFinder::CostFunction") int val);
 
-    public native void find(@Const @ByRef MatVector src, @StdVector Point corners,
-                          @ByRef MatVector masks);
+    public native void find(@StdVector UMat src, @StdVector Point corners,
+                          @StdVector UMat masks);
 }
 
 
@@ -1703,7 +1624,7 @@ public static final int
         return (GraphCutSeamFinderBase)super.position(position);
     }
 
-    /** enum cv::detail::GraphCutSeamFinderBase:: */
+    /** enum cv::detail::GraphCutSeamFinderBase::CostType */
     public static final int COST_COLOR = 0, COST_COLOR_GRAD = 1;
 }
 
@@ -1728,35 +1649,13 @@ public static final int
     public GraphCutSeamFinder() { allocate(); }
     private native void allocate();
 
-    public native void find(@Const @ByRef MatVector src, @StdVector Point corners,
-                  @ByRef MatVector masks);
+    public native void find(@StdVector UMat src, @StdVector Point corners,
+                  @StdVector UMat masks);
 }
 
 
-@Platform(not="android") @Namespace("cv::detail") @NoOffset public static class GraphCutSeamFinderGpu extends GraphCutSeamFinderBase {
-    static { Loader.load(); }
-    /** Pointer cast constructor. Invokes {@link Pointer#Pointer(Pointer)}. */
-    public GraphCutSeamFinderGpu(Pointer p) { super(p); }
-    /** Native array allocator. Access with {@link Pointer#position(int)}. */
-    public GraphCutSeamFinderGpu(int size) { allocateArray(size); }
-    private native void allocateArray(int size);
-    @Override public GraphCutSeamFinderGpu position(int position) {
-        return (GraphCutSeamFinderGpu)super.position(position);
-    }
-    public PairwiseSeamFinder asPairwiseSeamFinder() { return asPairwiseSeamFinder(this); }
-    @Namespace public static native @Name("static_cast<cv::detail::PairwiseSeamFinder*>") PairwiseSeamFinder asPairwiseSeamFinder(GraphCutSeamFinderGpu pointer);
-
-    public GraphCutSeamFinderGpu(int cost_type/*=COST_COLOR_GRAD*/, float terminal_cost/*=10000.f*/,
-                              float bad_region_penalty/*=1000.f*/) { allocate(cost_type, terminal_cost, bad_region_penalty); }
-    private native void allocate(int cost_type/*=COST_COLOR_GRAD*/, float terminal_cost/*=10000.f*/,
-                              float bad_region_penalty/*=1000.f*/);
-    public GraphCutSeamFinderGpu() { allocate(); }
-    private native void allocate();
-
-    public native void find(@Const @ByRef MatVector src, @StdVector Point corners,
-                  @ByRef MatVector masks);
-    public native void findInPair(@Cast("size_t") long first, @Cast("size_t") long second, @ByVal Rect roi);
-}
+// #ifdef HAVE_OPENCV_CUDA
+// #endif
 
  // namespace detail
  // namespace cv
@@ -1811,7 +1710,7 @@ public static final int
 // #ifndef __OPENCV_STITCHING_BLENDERS_HPP__
 // #define __OPENCV_STITCHING_BLENDERS_HPP__
 
-// #include "opencv2/core/core.hpp"
+// #include "opencv2/core.hpp"
 
 
 // Simple blender which puts one image over another
@@ -1837,8 +1736,8 @@ public static final int
 
     public native void prepare(@StdVector Point corners, @StdVector Size sizes);
     public native void prepare(@ByVal Rect dst_roi);
-    public native void feed(@Const @ByRef Mat img, @Const @ByRef Mat mask, @ByVal Point tl);
-    public native void blend(@ByRef Mat dst, @ByRef Mat dst_mask);
+    public native void feed(@ByVal MatVector img, @ByVal MatVector mask, @ByVal Point tl);
+    public native void blend(@ByVal Mat dst, @ByVal Mat dst_mask);
 }
 
 
@@ -1862,13 +1761,13 @@ public static final int
     public native void setSharpness(float val);
 
     public native void prepare(@ByVal Rect dst_roi);
-    public native void feed(@Const @ByRef Mat img, @Const @ByRef Mat mask, @ByVal Point tl);
-    public native void blend(@ByRef Mat dst, @ByRef Mat dst_mask);
+    public native void feed(@ByVal MatVector img, @ByVal MatVector mask, @ByVal Point tl);
+    public native void blend(@ByVal Mat dst, @ByVal Mat dst_mask);
 
     // Creates weight maps for fixed set of source images by their masks and top-left corners.
     // Final image can be obtained by simple weighting of the source images.
-    public native @ByVal Rect createWeightMaps(@Const @ByRef MatVector masks, @StdVector Point corners,
-                              @ByRef MatVector weight_maps);
+    public native @ByVal Rect createWeightMaps(@StdVector UMat masks, @StdVector Point corners,
+                              @StdVector UMat weight_maps);
 }
 
 
@@ -1894,24 +1793,24 @@ public static final int
     public native void setNumBands(int val);
 
     public native void prepare(@ByVal Rect dst_roi);
-    public native void feed(@Const @ByRef Mat img, @Const @ByRef Mat mask, @ByVal Point tl);
-    public native void blend(@ByRef Mat dst, @ByRef Mat dst_mask);
+    public native void feed(@ByVal MatVector img, @ByVal MatVector mask, @ByVal Point tl);
+    public native void blend(@ByVal Mat dst, @ByVal Mat dst_mask);
 }
 
 
 //////////////////////////////////////////////////////////////////////////////
 // Auxiliary functions
 
-@Namespace("cv::detail") public static native void normalizeUsingWeightMap(@Const @ByRef Mat weight, @ByRef Mat src);
+@Namespace("cv::detail") public static native void normalizeUsingWeightMap(@ByVal MatVector weight, @ByVal Mat src);
 
-@Namespace("cv::detail") public static native void createWeightMap(@Const @ByRef Mat mask, float sharpness, @ByRef Mat weight);
+@Namespace("cv::detail") public static native void createWeightMap(@ByVal MatVector mask, float sharpness, @ByVal Mat weight);
 
-@Namespace("cv::detail") public static native void createLaplacePyr(@Const @ByRef Mat img, int num_levels, @ByRef MatVector pyr);
-@Namespace("cv::detail") public static native void createLaplacePyrGpu(@Const @ByRef Mat img, int num_levels, @ByRef MatVector pyr);
+@Namespace("cv::detail") public static native void createLaplacePyr(@ByVal MatVector img, int num_levels, @StdVector UMat pyr);
+@Namespace("cv::detail") public static native void createLaplacePyrGpu(@ByVal MatVector img, int num_levels, @StdVector UMat pyr);
 
 // Restores source image
-@Namespace("cv::detail") public static native void restoreImageFromLaplacePyr(@ByRef MatVector pyr);
-@Namespace("cv::detail") public static native void restoreImageFromLaplacePyrGpu(@ByRef MatVector pyr);
+@Namespace("cv::detail") public static native void restoreImageFromLaplacePyr(@StdVector UMat pyr);
+@Namespace("cv::detail") public static native void restoreImageFromLaplacePyrGpu(@StdVector UMat pyr);
 
  // namespace detail
  // namespace cv
@@ -1966,7 +1865,7 @@ public static final int
 // #ifndef __OPENCV_STITCHING_AUTOCALIB_HPP__
 // #define __OPENCV_STITCHING_AUTOCALIB_HPP__
 
-// #include "opencv2/core/core.hpp"
+// #include "opencv2/core.hpp"
 // #include "matchers.hpp"
 
 // See "Construction of Panoramic Image Mosaics with Global and Local Alignment"
@@ -1991,6 +1890,107 @@ public static final int
  // namespace cv
 
 // #endif // __OPENCV_STITCHING_AUTOCALIB_HPP__
+
+
+// Parsed from <opencv2/stitching/detail/timelapsers.hpp>
+
+/*M///////////////////////////////////////////////////////////////////////////////////////
+//
+//  IMPORTANT: READ BEFORE DOWNLOADING, COPYING, INSTALLING OR USING.
+//
+//  By downloading, copying, installing or using the software you agree to this license.
+//  If you do not agree to this license, do not download, install,
+//  copy or use the software.
+//
+//
+//                          License Agreement
+//                For Open Source Computer Vision Library
+//
+// Copyright (C) 2000-2008, Intel Corporation, all rights reserved.
+// Copyright (C) 2009, Willow Garage Inc., all rights reserved.
+// Third party copyrights are property of their respective owners.
+//
+// Redistribution and use in source and binary forms, with or without modification,
+// are permitted provided that the following conditions are met:
+//
+//   * Redistribution's of source code must retain the above copyright notice,
+//     this list of conditions and the following disclaimer.
+//
+//   * Redistribution's in binary form must reproduce the above copyright notice,
+//     this list of conditions and the following disclaimer in the documentation
+//     and/or other materials provided with the distribution.
+//
+//   * The name of the copyright holders may not be used to endorse or promote products
+//     derived from this software without specific prior written permission.
+//
+// This software is provided by the copyright holders and contributors "as is" and
+// any express or implied warranties, including, but not limited to, the implied
+// warranties of merchantability and fitness for a particular purpose are disclaimed.
+// In no event shall the Intel Corporation or contributors be liable for any direct,
+// indirect, incidental, special, exemplary, or consequential damages
+// (including, but not limited to, procurement of substitute goods or services;
+// loss of use, data, or profits; or business interruption) however caused
+// and on any theory of liability, whether in contract, strict liability,
+// or tort (including negligence or otherwise) arising in any way out of
+// the use of this software, even if advised of the possibility of such damage.
+//
+//M*/
+
+
+// #ifndef __OPENCV_STITCHING_TIMELAPSERS_HPP__
+// #define __OPENCV_STITCHING_TIMELAPSERS_HPP__
+
+// #include "opencv2/core.hpp"
+
+//  Base Timelapser class, takes a sequence of images, applies appropriate shift, stores result in dst_.
+
+@Namespace("cv::detail") public static class Timelapser extends Pointer {
+    static { Loader.load(); }
+    /** Default native constructor. */
+    public Timelapser() { allocate(); }
+    /** Native array allocator. Access with {@link Pointer#position(int)}. */
+    public Timelapser(int size) { allocateArray(size); }
+    /** Pointer cast constructor. Invokes {@link Pointer#Pointer(Pointer)}. */
+    public Timelapser(Pointer p) { super(p); }
+    private native void allocate();
+    private native void allocateArray(int size);
+    @Override public Timelapser position(int position) {
+        return (Timelapser)super.position(position);
+    }
+
+
+    /** enum cv::detail::Timelapser:: */
+    public static final int AS_IS = 0, CROP = 1;
+
+    public static native @Ptr Timelapser createDefault(int type);
+
+    public native void initialize(@StdVector Point corners, @StdVector Size sizes);
+    public native void process(@ByVal MatVector img, @ByVal MatVector mask, @ByVal Point tl);
+    public native @Const @ByRef UMat getDst();
+}
+
+
+@Namespace("cv::detail") public static class TimelapserCrop extends Timelapser {
+    static { Loader.load(); }
+    /** Default native constructor. */
+    public TimelapserCrop() { allocate(); }
+    /** Native array allocator. Access with {@link Pointer#position(int)}. */
+    public TimelapserCrop(int size) { allocateArray(size); }
+    /** Pointer cast constructor. Invokes {@link Pointer#Pointer(Pointer)}. */
+    public TimelapserCrop(Pointer p) { super(p); }
+    private native void allocate();
+    private native void allocateArray(int size);
+    @Override public TimelapserCrop position(int position) {
+        return (TimelapserCrop)super.position(position);
+    }
+
+    public native void initialize(@StdVector Point corners, @StdVector Size sizes);
+}
+
+ // namespace detail
+ // namespace cv
+
+// #endif // __OPENCV_STITCHING_TIMELAPSERS_HPP__
 
 
 // Parsed from <opencv2/stitching/warpers.hpp>
@@ -2248,65 +2248,15 @@ public static final int
 
 
 
-@Platform(not="android") @Namespace("cv") public static class PlaneWarperGpu extends WarperCreator {
-    static { Loader.load(); }
-    /** Default native constructor. */
-    public PlaneWarperGpu() { allocate(); }
-    /** Native array allocator. Access with {@link Pointer#position(int)}. */
-    public PlaneWarperGpu(int size) { allocateArray(size); }
-    /** Pointer cast constructor. Invokes {@link Pointer#Pointer(Pointer)}. */
-    public PlaneWarperGpu(Pointer p) { super(p); }
-    private native void allocate();
-    private native void allocateArray(int size);
-    @Override public PlaneWarperGpu position(int position) {
-        return (PlaneWarperGpu)super.position(position);
-    }
-
-    public native @Ptr RotationWarper create(float scale);
-}
-
-
-@Platform(not="android") @Namespace("cv") public static class CylindricalWarperGpu extends WarperCreator {
-    static { Loader.load(); }
-    /** Default native constructor. */
-    public CylindricalWarperGpu() { allocate(); }
-    /** Native array allocator. Access with {@link Pointer#position(int)}. */
-    public CylindricalWarperGpu(int size) { allocateArray(size); }
-    /** Pointer cast constructor. Invokes {@link Pointer#Pointer(Pointer)}. */
-    public CylindricalWarperGpu(Pointer p) { super(p); }
-    private native void allocate();
-    private native void allocateArray(int size);
-    @Override public CylindricalWarperGpu position(int position) {
-        return (CylindricalWarperGpu)super.position(position);
-    }
-
-    public native @Ptr RotationWarper create(float scale);
-}
-
-
-@Platform(not="android") @Namespace("cv") public static class SphericalWarperGpu extends WarperCreator {
-    static { Loader.load(); }
-    /** Default native constructor. */
-    public SphericalWarperGpu() { allocate(); }
-    /** Native array allocator. Access with {@link Pointer#position(int)}. */
-    public SphericalWarperGpu(int size) { allocateArray(size); }
-    /** Pointer cast constructor. Invokes {@link Pointer#Pointer(Pointer)}. */
-    public SphericalWarperGpu(Pointer p) { super(p); }
-    private native void allocate();
-    private native void allocateArray(int size);
-    @Override public SphericalWarperGpu position(int position) {
-        return (SphericalWarperGpu)super.position(position);
-    }
-
-    public native @Ptr RotationWarper create(float scale);
-}
+// #ifdef HAVE_OPENCV_CUDAWARPING
+// #endif
 
  // namespace cv
 
 // #endif // __OPENCV_STITCHING_WARPER_CREATORS_HPP__
 
 
-// Parsed from <opencv2/stitching/stitcher.hpp>
+// Parsed from <opencv2/stitching.hpp>
 
 /*M///////////////////////////////////////////////////////////////////////////////////////
 //
@@ -2353,8 +2303,8 @@ public static final int
 // #ifndef __OPENCV_STITCHING_STITCHER_HPP__
 // #define __OPENCV_STITCHING_STITCHER_HPP__
 
-// #include "opencv2/core/core.hpp"
-// #include "opencv2/features2d/features2d.hpp"
+// #include "opencv2/core.hpp"
+// #include "opencv2/features2d.hpp"
 // #include "opencv2/stitching/warpers.hpp"
 // #include "opencv2/stitching/detail/matchers.hpp"
 // #include "opencv2/stitching/detail/motion_estimators.hpp"
@@ -2363,18 +2313,30 @@ public static final int
 // #include "opencv2/stitching/detail/blenders.hpp"
 // #include "opencv2/stitching/detail/camera.hpp"
 
-@Namespace("cv") @NoOffset public static class Stitcher extends Pointer {
+@Namespace("cv") public static class Stitcher extends Pointer {
     static { Loader.load(); }
-    /** Empty constructor. */
-    public Stitcher() { }
+    /** Default native constructor. */
+    public Stitcher() { allocate(); }
+    /** Native array allocator. Access with {@link Pointer#position(int)}. */
+    public Stitcher(int size) { allocateArray(size); }
     /** Pointer cast constructor. Invokes {@link Pointer#Pointer(Pointer)}. */
     public Stitcher(Pointer p) { super(p); }
+    private native void allocate();
+    private native void allocateArray(int size);
+    @Override public Stitcher position(int position) {
+        return (Stitcher)super.position(position);
+    }
 
     /** enum cv::Stitcher:: */
     public static final int ORIG_RESOL = -1;
     /** enum cv::Stitcher::Status */
-    public static final int OK = 0, ERR_NEED_MORE_IMGS = 1;
+    public static final int
+        OK = 0,
+        ERR_NEED_MORE_IMGS = 1,
+        ERR_HOMOGRAPHY_EST_FAIL = 2,
+        ERR_CAMERA_PARAMS_ADJUST_FAIL = 3;
 
+   // Stitcher() {}
     // Creates stitcher with default parameters
     public static native @ByVal Stitcher createDefault(@Cast("bool") boolean try_use_gpu/*=false*/);
     public static native @ByVal Stitcher createDefault();
@@ -2403,8 +2365,8 @@ public static final int
     public native @Ptr FeaturesMatcher featuresMatcher();
     public native void setFeaturesMatcher(@Ptr FeaturesMatcher features_matcher);
 
-    public native @Const @ByRef Mat matchingMask();
-    public native void setMatchingMask(@Const @ByRef Mat mask);
+    public native @Const @ByRef UMat matchingMask();
+    public native void setMatchingMask(@Const @ByRef UMat mask);
 
     public native @Ptr BundleAdjusterBase bundleAdjuster();
     public native void setBundleAdjuster(@Ptr BundleAdjusterBase bundle_adjuster);
@@ -2434,6 +2396,9 @@ public static final int
     public native @StdVector CameraParams cameras();
     public native double workScale();
 }
+
+@Namespace("cv") public static native @Ptr Stitcher createStitcher(@Cast("bool") boolean try_use_gpu/*=false*/);
+@Namespace("cv") public static native @Ptr Stitcher createStitcher();
 
  // namespace cv
 

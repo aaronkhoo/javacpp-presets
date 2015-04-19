@@ -12,7 +12,7 @@ import static org.bytedeco.javacpp.opencv_imgproc.*;
 public class opencv_video extends org.bytedeco.javacpp.helper.opencv_video {
     static { Loader.load(); }
 
-// Parsed from <opencv2/video/video.hpp>
+// Parsed from <opencv2/video.hpp>
 
 /*M///////////////////////////////////////////////////////////////////////////////////////
 //
@@ -23,11 +23,12 @@ public class opencv_video extends org.bytedeco.javacpp.helper.opencv_video {
 //  copy or use the software.
 //
 //
-//                           License Agreement
+//                          License Agreement
 //                For Open Source Computer Vision Library
 //
 // Copyright (C) 2000-2008, Intel Corporation, all rights reserved.
 // Copyright (C) 2009, Willow Garage Inc., all rights reserved.
+// Copyright (C) 2013, OpenCV Foundation, all rights reserved.
 // Third party copyrights are property of their respective owners.
 //
 // Redistribution and use in source and binary forms, with or without modification,
@@ -62,21 +63,10 @@ public class opencv_video extends org.bytedeco.javacpp.helper.opencv_video {
 // #include "opencv2/video/tracking.hpp"
 // #include "opencv2/video/background_segm.hpp"
 
-// #ifdef __cplusplus
-
-@Namespace("cv") public static native @Cast("bool") boolean initModule_video();
-
-
-// #endif
-
 // #endif //__OPENCV_VIDEO_HPP__
 
 
-// Parsed from <opencv2/video/tracking.hpp>
-
-/** \file tracking.hpp
- \brief The Object and Feature Tracking
- */
+// Parsed from <opencv2/video/tracking_c.h>
 
 /*M///////////////////////////////////////////////////////////////////////////////////////
 //
@@ -87,11 +77,12 @@ public class opencv_video extends org.bytedeco.javacpp.helper.opencv_video {
 //  copy or use the software.
 //
 //
-//                           License Agreement
+//                          License Agreement
 //                For Open Source Computer Vision Library
 //
 // Copyright (C) 2000-2008, Intel Corporation, all rights reserved.
 // Copyright (C) 2009, Willow Garage Inc., all rights reserved.
+// Copyright (C) 2013, OpenCV Foundation, all rights reserved.
 // Third party copyrights are property of their respective owners.
 //
 // Redistribution and use in source and binary forms, with or without modification,
@@ -120,11 +111,10 @@ public class opencv_video extends org.bytedeco.javacpp.helper.opencv_video {
 //
 //M*/
 
-// #ifndef __OPENCV_TRACKING_HPP__
-// #define __OPENCV_TRACKING_HPP__
+// #ifndef __OPENCV_TRACKING_C_H__
+// #define __OPENCV_TRACKING_C_H__
 
-// #include "opencv2/core/core.hpp"
-// #include "opencv2/imgproc/imgproc.hpp"
+// #include "opencv2/imgproc/types_c.h"
 
 // #ifdef __cplusplus
 // #endif
@@ -354,37 +344,127 @@ public static native @Const CvMat cvKalmanCorrect( CvKalman kalman, @Const CvMat
 public static native @Const CvMat cvKalmanUpdateByTime(CvKalman arg1, CvMat arg2);
 public static native @Const CvMat cvKalmanUpdateByMeasurement(CvKalman arg1, CvMat arg2);
 
-// #ifdef __cplusplus
 
-/** updates motion history image using the current silhouette */
-@Namespace("cv") public static native void updateMotionHistory( @ByVal Mat silhouette, @ByVal Mat mhi,
-                                       double timestamp, double duration );
+// #ifdef __cplusplus // extern "C"
+// #endif
 
-/** computes the motion gradient orientation image from the motion history image */
-@Namespace("cv") public static native void calcMotionGradient( @ByVal Mat mhi, @ByVal Mat mask,
-                                      @ByVal Mat orientation,
-                                      double delta1, double delta2,
-                                      int apertureSize/*=3*/ );
-@Namespace("cv") public static native void calcMotionGradient( @ByVal Mat mhi, @ByVal Mat mask,
-                                      @ByVal Mat orientation,
-                                      double delta1, double delta2 );
 
-/** computes the global orientation of the selected motion history image part */
-@Namespace("cv") public static native double calcGlobalOrientation( @ByVal Mat orientation, @ByVal Mat mask,
-                                           @ByVal Mat mhi, double timestamp,
-                                           double duration );
+// #endif // __OPENCV_TRACKING_C_H__
 
-@Namespace("cv") public static native void segmentMotion(@ByVal Mat mhi, @ByVal Mat segmask,
-                                @StdVector Rect boundingRects,
-                                double timestamp, double segThresh);
+
+// Parsed from <opencv2/video/tracking.hpp>
+
+/*M///////////////////////////////////////////////////////////////////////////////////////
+//
+//  IMPORTANT: READ BEFORE DOWNLOADING, COPYING, INSTALLING OR USING.
+//
+//  By downloading, copying, installing or using the software you agree to this license.
+//  If you do not agree to this license, do not download, install,
+//  copy or use the software.
+//
+//
+//                          License Agreement
+//                For Open Source Computer Vision Library
+//
+// Copyright (C) 2000-2008, Intel Corporation, all rights reserved.
+// Copyright (C) 2009, Willow Garage Inc., all rights reserved.
+// Copyright (C) 2013, OpenCV Foundation, all rights reserved.
+// Third party copyrights are property of their respective owners.
+//
+// Redistribution and use in source and binary forms, with or without modification,
+// are permitted provided that the following conditions are met:
+//
+//   * Redistribution's of source code must retain the above copyright notice,
+//     this list of conditions and the following disclaimer.
+//
+//   * Redistribution's in binary form must reproduce the above copyright notice,
+//     this list of conditions and the following disclaimer in the documentation
+//     and/or other materials provided with the distribution.
+//
+//   * The name of the copyright holders may not be used to endorse or promote products
+//     derived from this software without specific prior written permission.
+//
+// This software is provided by the copyright holders and contributors "as is" and
+// any express or implied warranties, including, but not limited to, the implied
+// warranties of merchantability and fitness for a particular purpose are disclaimed.
+// In no event shall the Intel Corporation or contributors be liable for any direct,
+// indirect, incidental, special, exemplary, or consequential damages
+// (including, but not limited to, procurement of substitute goods or services;
+// loss of use, data, or profits; or business interruption) however caused
+// and on any theory of liability, whether in contract, strict liability,
+// or tort (including negligence or otherwise) arising in any way out of
+// the use of this software, even if advised of the possibility of such damage.
+//
+//M*/
+
+// #ifndef __OPENCV_TRACKING_HPP__
+// #define __OPENCV_TRACKING_HPP__
+
+// #include "opencv2/core.hpp"
+// #include "opencv2/imgproc.hpp"
+
+/** enum cv:: */
+public static final int OPTFLOW_USE_INITIAL_FLOW     = 4,
+       OPTFLOW_LK_GET_MIN_EIGENVALS = 8,
+       OPTFLOW_FARNEBACK_GAUSSIAN   = 256;
 
 /** updates the object tracking window using CAMSHIFT algorithm */
 @Namespace("cv") public static native @ByVal RotatedRect CamShift( @ByVal Mat probImage, @ByRef Rect window,
                                    @ByVal TermCriteria criteria );
 
 /** updates the object tracking window using meanshift algorithm */
-@Namespace("cv") public static native int meanShift( @ByVal Mat probImage, @ByRef Rect window,
-                            @ByVal TermCriteria criteria );
+@Namespace("cv") public static native int meanShift( @ByVal Mat probImage, @ByRef Rect window, @ByVal TermCriteria criteria );
+
+/** constructs a pyramid which can be used as input for calcOpticalFlowPyrLK */
+@Namespace("cv") public static native int buildOpticalFlowPyramid( @ByVal Mat img, @ByVal MatVector pyramid,
+                                          @ByVal Size winSize, int maxLevel, @Cast("bool") boolean withDerivatives/*=true*/,
+                                          int pyrBorder/*=BORDER_REFLECT_101*/,
+                                          int derivBorder/*=BORDER_CONSTANT*/,
+                                          @Cast("bool") boolean tryReuseInputImage/*=true*/ );
+@Namespace("cv") public static native int buildOpticalFlowPyramid( @ByVal Mat img, @ByVal MatVector pyramid,
+                                          @ByVal Size winSize, int maxLevel );
+
+/** computes sparse optical flow using multi-scale Lucas-Kanade algorithm */
+@Namespace("cv") public static native void calcOpticalFlowPyrLK( @ByVal Mat prevImg, @ByVal Mat nextImg,
+                                        @ByVal Mat prevPts, @ByVal Mat nextPts,
+                                        @ByVal Mat status, @ByVal Mat err,
+                                        @ByVal Size winSize/*=Size(21,21)*/, int maxLevel/*=3*/,
+                                        @ByVal TermCriteria criteria/*=TermCriteria(TermCriteria::COUNT+TermCriteria::EPS, 30, 0.01)*/,
+                                        int flags/*=0*/, double minEigThreshold/*=1e-4*/ );
+@Namespace("cv") public static native void calcOpticalFlowPyrLK( @ByVal Mat prevImg, @ByVal Mat nextImg,
+                                        @ByVal Mat prevPts, @ByVal Mat nextPts,
+                                        @ByVal Mat status, @ByVal Mat err );
+
+/** computes dense optical flow using Farneback algorithm */
+@Namespace("cv") public static native void calcOpticalFlowFarneback( @ByVal Mat prev, @ByVal Mat next, @ByVal Mat flow,
+                                            double pyr_scale, int levels, int winsize,
+                                            int iterations, int poly_n, double poly_sigma,
+                                            int flags );
+
+/** estimates the best-fit Euqcidean, similarity, affine or perspective transformation */
+// that maps one 2D point set to another or one image to another.
+@Namespace("cv") public static native @ByVal Mat estimateRigidTransform( @ByVal Mat src, @ByVal Mat dst, @Cast("bool") boolean fullAffine );
+
+
+/** enum cv:: */
+public static final int
+    MOTION_TRANSLATION = 0,
+    MOTION_EUCLIDEAN   = 1,
+    MOTION_AFFINE      = 2,
+    MOTION_HOMOGRAPHY  = 3;
+
+/** estimates the best-fit Translation, Euclidean, Affine or Perspective Transformation */
+// with respect to Enhanced Correlation Coefficient criterion that maps one image to
+// another (area-based alignment)
+//
+// see reference:
+// Evangelidis, G. E., Psarakis, E.Z., Parametric Image Alignment using
+// Enhanced Correlation Coefficient Maximization, PAMI, 30(8), 2008
+@Namespace("cv") public static native double findTransformECC( @ByVal Mat templateImage, @ByVal Mat inputImage,
+                                      @ByVal Mat warpMatrix, int motionType/*=MOTION_AFFINE*/,
+                                      @ByVal TermCriteria criteria/*=TermCriteria(TermCriteria::COUNT+TermCriteria::EPS, 50, 0.001)*/);
+@Namespace("cv") public static native double findTransformECC( @ByVal Mat templateImage, @ByVal Mat inputImage,
+                                      @ByVal Mat warpMatrix);
 
 /**
  Kalman filter.
@@ -408,19 +488,19 @@ public static native @Const CvMat cvKalmanUpdateByMeasurement(CvKalman arg1, CvM
     public KalmanFilter() { allocate(); }
     private native void allocate();
     /** the full constructor taking the dimensionality of the state, of the measurement and of the control vector */
-    public KalmanFilter(int dynamParams, int measureParams, int controlParams/*=0*/, int type/*=CV_32F*/) { allocate(dynamParams, measureParams, controlParams, type); }
-    private native void allocate(int dynamParams, int measureParams, int controlParams/*=0*/, int type/*=CV_32F*/);
-    public KalmanFilter(int dynamParams, int measureParams) { allocate(dynamParams, measureParams); }
-    private native void allocate(int dynamParams, int measureParams);
+    public KalmanFilter( int dynamParams, int measureParams, int controlParams/*=0*/, int type/*=CV_32F*/ ) { allocate(dynamParams, measureParams, controlParams, type); }
+    private native void allocate( int dynamParams, int measureParams, int controlParams/*=0*/, int type/*=CV_32F*/ );
+    public KalmanFilter( int dynamParams, int measureParams ) { allocate(dynamParams, measureParams); }
+    private native void allocate( int dynamParams, int measureParams );
     /** re-initializes Kalman filter. The previous content is destroyed. */
-    public native void init(int dynamParams, int measureParams, int controlParams/*=0*/, int type/*=CV_32F*/);
-    public native void init(int dynamParams, int measureParams);
+    public native void init( int dynamParams, int measureParams, int controlParams/*=0*/, int type/*=CV_32F*/ );
+    public native void init( int dynamParams, int measureParams );
 
     /** computes predicted state */
-    public native @Const @ByRef Mat predict(@Const @ByRef Mat control/*=Mat()*/);
-    public native @Const @ByRef Mat predict();
+    public native @Const @ByRef Mat predict( @Const @ByRef Mat control/*=Mat()*/ );
+    public native @Const @ByRef Mat predict( );
     /** updates the predicted state from the measurement */
-    public native @Const @ByRef Mat correct(@Const @ByRef Mat measurement);
+    public native @Const @ByRef Mat correct( @Const @ByRef Mat measurement );
 
     /** predicted state (x'(k)): x(k)=A*x(k-1)+B*u(k) */
     public native @ByRef Mat statePre(); public native KalmanFilter statePre(Mat statePre);
@@ -451,65 +531,7 @@ public static native @Const CvMat cvKalmanUpdateByMeasurement(CvKalman arg1, CvM
     public native @ByRef Mat temp5(); public native KalmanFilter temp5(Mat temp5);
 }
 
-/** enum cv:: */
-public static final int
-    OPTFLOW_USE_INITIAL_FLOW =  CV_LKFLOW_INITIAL_GUESSES,
-    OPTFLOW_LK_GET_MIN_EIGENVALS =  CV_LKFLOW_GET_MIN_EIGENVALS,
-    OPTFLOW_FARNEBACK_GAUSSIAN = 256;
 
-/** constructs a pyramid which can be used as input for calcOpticalFlowPyrLK */
-@Namespace("cv") public static native int buildOpticalFlowPyramid(@ByVal Mat img, @ByVal MatVector pyramid,
-                                         @ByVal Size winSize, int maxLevel, @Cast("bool") boolean withDerivatives/*=true*/,
-                                         int pyrBorder/*=BORDER_REFLECT_101*/, int derivBorder/*=BORDER_CONSTANT*/,
-                                         @Cast("bool") boolean tryReuseInputImage/*=true*/);
-@Namespace("cv") public static native int buildOpticalFlowPyramid(@ByVal Mat img, @ByVal MatVector pyramid,
-                                         @ByVal Size winSize, int maxLevel);
-
-/** computes sparse optical flow using multi-scale Lucas-Kanade algorithm */
-@Namespace("cv") public static native void calcOpticalFlowPyrLK( @ByVal Mat prevImg, @ByVal Mat nextImg,
-                           @ByVal Mat prevPts, @ByVal Mat nextPts,
-                           @ByVal Mat status, @ByVal Mat err,
-                           @ByVal Size winSize/*=Size(21,21)*/, int maxLevel/*=3*/,
-                           @ByVal TermCriteria criteria/*=TermCriteria(TermCriteria::COUNT+TermCriteria::EPS, 30, 0.01)*/,
-                           int flags/*=0*/, double minEigThreshold/*=1e-4*/);
-@Namespace("cv") public static native void calcOpticalFlowPyrLK( @ByVal Mat prevImg, @ByVal Mat nextImg,
-                           @ByVal Mat prevPts, @ByVal Mat nextPts,
-                           @ByVal Mat status, @ByVal Mat err);
-
-/** computes dense optical flow using Farneback algorithm */
-@Namespace("cv") public static native void calcOpticalFlowFarneback( @ByVal Mat prev, @ByVal Mat next,
-                           @ByVal Mat flow, double pyr_scale, int levels, int winsize,
-                           int iterations, int poly_n, double poly_sigma, int flags );
-
-/** estimates the best-fit Euqcidean, similarity, affine or perspective transformation */
-// that maps one 2D point set to another or one image to another.
-@Namespace("cv") public static native @ByVal Mat estimateRigidTransform( @ByVal Mat src, @ByVal Mat dst,
-                                         @Cast("bool") boolean fullAffine);
-
-/** computes dense optical flow using Simple Flow algorithm */
-@Namespace("cv") public static native void calcOpticalFlowSF(@ByRef Mat from,
-                                    @ByRef Mat to,
-                                    @ByRef Mat flow,
-                                    int layers,
-                                    int averaging_block_size,
-                                    int max_flow);
-
-@Namespace("cv") public static native void calcOpticalFlowSF(@ByRef Mat from,
-                                    @ByRef Mat to,
-                                    @ByRef Mat flow,
-                                    int layers,
-                                    int averaging_block_size,
-                                    int max_flow,
-                                    double sigma_dist,
-                                    double sigma_color,
-                                    int postprocess_window,
-                                    double sigma_dist_fix,
-                                    double sigma_color_fix,
-                                    double occ_thr,
-                                    int upscale_averaging_radius,
-                                    double upscale_sigma_dist,
-                                    double upscale_sigma_color,
-                                    double speed_up_thr);
 
 @Namespace("cv") public static class DenseOpticalFlow extends Algorithm {
     static { Loader.load(); }
@@ -518,7 +540,7 @@ public static final int
     /** Pointer cast constructor. Invokes {@link Pointer#Pointer(Pointer)}. */
     public DenseOpticalFlow(Pointer p) { super(p); }
 
-    public native void calc(@ByVal Mat I0, @ByVal Mat I1, @ByVal Mat flow);
+    public native void calc( @ByVal Mat I0, @ByVal Mat I1, @ByVal Mat flow );
     public native void collectGarbage();
 }
 
@@ -529,9 +551,7 @@ public static final int
 //   [2] Javier Sanchez, Enric Meinhardt-Llopis and Gabriele Facciolo. "TV-L1 Optical Flow Estimation".
 @Namespace("cv") public static native @Ptr DenseOpticalFlow createOptFlow_DualTVL1();
 
-
-
-// #endif
+ // cv
 
 // #endif
 
@@ -547,11 +567,12 @@ public static final int
 //  copy or use the software.
 //
 //
-//                           License Agreement
+//                          License Agreement
 //                For Open Source Computer Vision Library
 //
 // Copyright (C) 2000-2008, Intel Corporation, all rights reserved.
 // Copyright (C) 2009, Willow Garage Inc., all rights reserved.
+// Copyright (C) 2013, OpenCV Foundation, all rights reserved.
 // Third party copyrights are property of their respective owners.
 //
 // Redistribution and use in source and binary forms, with or without modification,
@@ -583,8 +604,7 @@ public static final int
 // #ifndef __OPENCV_BACKGROUND_SEGM_HPP__
 // #define __OPENCV_BACKGROUND_SEGM_HPP__
 
-// #include "opencv2/core/core.hpp"
-// #include <list>
+// #include "opencv2/core.hpp"
 
 /**
  The Base Class for Background/Foreground Segmentation
@@ -594,67 +614,17 @@ public static final int
 */
 @Namespace("cv") public static class BackgroundSubtractor extends Algorithm {
     static { Loader.load(); }
-    /** Default native constructor. */
-    public BackgroundSubtractor() { allocate(); }
-    /** Native array allocator. Access with {@link Pointer#position(int)}. */
-    public BackgroundSubtractor(int size) { allocateArray(size); }
+    /** Empty constructor. */
+    public BackgroundSubtractor() { }
     /** Pointer cast constructor. Invokes {@link Pointer#Pointer(Pointer)}. */
     public BackgroundSubtractor(Pointer p) { super(p); }
-    private native void allocate();
-    private native void allocateArray(int size);
-    @Override public BackgroundSubtractor position(int position) {
-        return (BackgroundSubtractor)super.position(position);
-    }
 
-    /** the virtual destructor */
     /** the update operator that takes the next video frame and returns the current foreground mask as 8-bit binary image. */
-    public native @Name("operator()") void apply(@ByVal Mat image, @ByVal Mat fgmask,
-                                                  double learningRate/*=0*/);
-    public native @Name("operator()") void apply(@ByVal Mat image, @ByVal Mat fgmask);
+    public native void apply(@ByVal Mat image, @ByVal Mat fgmask, double learningRate/*=-1*/);
+    public native void apply(@ByVal Mat image, @ByVal Mat fgmask);
 
     /** computes a background image */
     public native void getBackgroundImage(@ByVal Mat backgroundImage);
-}
-
-
-/**
- Gaussian Mixture-based Backbround/Foreground Segmentation Algorithm
-
- The class implements the following algorithm:
- "An improved adaptive background mixture model for real-time tracking with shadow detection"
- P. KadewTraKuPong and R. Bowden,
- Proc. 2nd European Workshp on Advanced Video-Based Surveillance Systems, 2001."
- http://personal.ee.surrey.ac.uk/Personal/R.Bowden/publications/avbs01/avbs01.pdf
-
-*/
-@Namespace("cv") @NoOffset public static class BackgroundSubtractorMOG extends BackgroundSubtractor {
-    static { Loader.load(); }
-    /** Pointer cast constructor. Invokes {@link Pointer#Pointer(Pointer)}. */
-    public BackgroundSubtractorMOG(Pointer p) { super(p); }
-    /** Native array allocator. Access with {@link Pointer#position(int)}. */
-    public BackgroundSubtractorMOG(int size) { allocateArray(size); }
-    private native void allocateArray(int size);
-    @Override public BackgroundSubtractorMOG position(int position) {
-        return (BackgroundSubtractorMOG)super.position(position);
-    }
-
-    /** the default constructor */
-    public BackgroundSubtractorMOG() { allocate(); }
-    private native void allocate();
-    /** the full constructor that takes the length of the history, the number of gaussian mixtures, the background ratio parameter and the noise strength */
-    public BackgroundSubtractorMOG(int history, int nmixtures, double backgroundRatio, double noiseSigma/*=0*/) { allocate(history, nmixtures, backgroundRatio, noiseSigma); }
-    private native void allocate(int history, int nmixtures, double backgroundRatio, double noiseSigma/*=0*/);
-    public BackgroundSubtractorMOG(int history, int nmixtures, double backgroundRatio) { allocate(history, nmixtures, backgroundRatio); }
-    private native void allocate(int history, int nmixtures, double backgroundRatio);
-    /** the destructor */
-    /** the update operator */
-    public native @Name("operator()") void apply(@ByVal Mat image, @ByVal Mat fgmask, double learningRate/*=0*/);
-    public native @Name("operator()") void apply(@ByVal Mat image, @ByVal Mat fgmask);
-
-    /** re-initiaization method */
-    public native void initialize(@ByVal Size frameSize, int frameType);
-
-    public native AlgorithmInfo info();
 }
 
 
@@ -664,105 +634,99 @@ public static final int
  Z.Zivkovic
  International Conference Pattern Recognition, UK, August, 2004.
  http://www.zoranz.net/Publications/zivkovic2004ICPR.pdf
-*/
-@Namespace("cv") @NoOffset public static class BackgroundSubtractorMOG2 extends BackgroundSubtractor {
+ */
+@Namespace("cv") public static class BackgroundSubtractorMOG2 extends BackgroundSubtractor {
     static { Loader.load(); }
+    /** Empty constructor. */
+    public BackgroundSubtractorMOG2() { }
     /** Pointer cast constructor. Invokes {@link Pointer#Pointer(Pointer)}. */
     public BackgroundSubtractorMOG2(Pointer p) { super(p); }
-    /** Native array allocator. Access with {@link Pointer#position(int)}. */
-    public BackgroundSubtractorMOG2(int size) { allocateArray(size); }
-    private native void allocateArray(int size);
-    @Override public BackgroundSubtractorMOG2 position(int position) {
-        return (BackgroundSubtractorMOG2)super.position(position);
-    }
 
-    /** the default constructor */
-    public BackgroundSubtractorMOG2() { allocate(); }
-    private native void allocate();
-    /** the full constructor that takes the length of the history, the number of gaussian mixtures, the background ratio parameter and the noise strength */
-    public BackgroundSubtractorMOG2(int history,  float varThreshold, @Cast("bool") boolean bShadowDetection/*=true*/) { allocate(history, varThreshold, bShadowDetection); }
-    private native void allocate(int history,  float varThreshold, @Cast("bool") boolean bShadowDetection/*=true*/);
-    public BackgroundSubtractorMOG2(int history,  float varThreshold) { allocate(history, varThreshold); }
-    private native void allocate(int history,  float varThreshold);
-    /** the destructor */
-    /** the update operator */
-    public native @Name("operator()") void apply(@ByVal Mat image, @ByVal Mat fgmask, double learningRate/*=-1*/);
-    public native @Name("operator()") void apply(@ByVal Mat image, @ByVal Mat fgmask);
+    public native int getHistory();
+    public native void setHistory(int history);
 
-    /** computes a background image which are the mean of all background gaussians */
-    public native void getBackgroundImage(@ByVal Mat backgroundImage);
+    public native int getNMixtures();
+    public native void setNMixtures(int nmixtures);//needs reinitialization!
 
-    /** re-initiaization method */
-    public native void initialize(@ByVal Size frameSize, int frameType);
+    public native double getBackgroundRatio();
+    public native void setBackgroundRatio(double ratio);
 
-    public native AlgorithmInfo info();
+    public native double getVarThreshold();
+    public native void setVarThreshold(double varThreshold);
+
+    public native double getVarThresholdGen();
+    public native void setVarThresholdGen(double varThresholdGen);
+
+    public native double getVarInit();
+    public native void setVarInit(double varInit);
+
+    public native double getVarMin();
+    public native void setVarMin(double varMin);
+
+    public native double getVarMax();
+    public native void setVarMax(double varMax);
+
+    public native double getComplexityReductionThreshold();
+    public native void setComplexityReductionThreshold(double ct);
+
+    public native @Cast("bool") boolean getDetectShadows();
+    public native void setDetectShadows(@Cast("bool") boolean detectShadows);
+
+    public native int getShadowValue();
+    public native void setShadowValue(int value);
+
+    public native double getShadowThreshold();
+    public native void setShadowThreshold(double threshold);
 }
+
+@Namespace("cv") public static native @Ptr BackgroundSubtractorMOG2 createBackgroundSubtractorMOG2(int history/*=500*/, double varThreshold/*=16*/,
+                                   @Cast("bool") boolean detectShadows/*=true*/);
+@Namespace("cv") public static native @Ptr BackgroundSubtractorMOG2 createBackgroundSubtractorMOG2();
 
 /**
- * Background Subtractor module. Takes a series of images and returns a sequence of mask (8UC1)
- * images of the same size, where 255 indicates Foreground and 0 represents Background.
- * This class implements an algorithm described in "Visual Tracking of Human Visitors under
- * Variable-Lighting Conditions for a Responsive Audio Art Installation," A. Godbehere,
- * A. Matsukawa, K. Goldberg, American Control Conference, Montreal, June 2012.
- */
-@Namespace("cv") @NoOffset public static class BackgroundSubtractorGMG extends BackgroundSubtractor {
+ The class implements the K nearest neigbours algorithm from:
+ "Efficient Adaptive Density Estimation per Image Pixel for the Task of Background Subtraction"
+ Z.Zivkovic, F. van der Heijden
+ Pattern Recognition Letters, vol. 27, no. 7, pages 773-780, 2006
+ http://www.zoranz.net/Publications/zivkovicPRL2006.pdf
+
+ Fast for small foreground object. Results on the benchmark data is at http://www.changedetection.net.
+*/
+
+@Namespace("cv") public static class BackgroundSubtractorKNN extends BackgroundSubtractor {
     static { Loader.load(); }
+    /** Empty constructor. */
+    public BackgroundSubtractorKNN() { }
     /** Pointer cast constructor. Invokes {@link Pointer#Pointer(Pointer)}. */
-    public BackgroundSubtractorGMG(Pointer p) { super(p); }
-    /** Native array allocator. Access with {@link Pointer#position(int)}. */
-    public BackgroundSubtractorGMG(int size) { allocateArray(size); }
-    private native void allocateArray(int size);
-    @Override public BackgroundSubtractorGMG position(int position) {
-        return (BackgroundSubtractorGMG)super.position(position);
-    }
+    public BackgroundSubtractorKNN(Pointer p) { super(p); }
 
-    public BackgroundSubtractorGMG() { allocate(); }
-    private native void allocate();
-    public native AlgorithmInfo info();
+    public native int getHistory();
+    public native void setHistory(int history);
 
-    /**
-     * Validate parameters and set up data structures for appropriate image size.
-     * Must call before running on data.
-     * @param frameSize input frame size
-     * @param min       minimum value taken on by pixels in image sequence. Usually 0
-     * @param max       maximum value taken on by pixels in image sequence. e.g. 1.0 or 255
-     */
-    public native void initialize(@ByVal Size frameSize, double min, double max);
+    public native int getNSamples();
+    public native void setNSamples(int _nN);//needs reinitialization!
 
-    /**
-     * Performs single-frame background subtraction and builds up a statistical background image
-     * model.
-     * @param image Input image
-     * @param fgmask Output mask image representing foreground and background pixels
-     * @param learningRate Determines how quickly features are "forgotten" from histograms
-     */
-    public native @Name("operator()") void apply(@ByVal Mat image, @ByVal Mat fgmask, double learningRate/*=-1.0*/);
-    public native @Name("operator()") void apply(@ByVal Mat image, @ByVal Mat fgmask);
+    public native double getDist2Threshold();
+    public native void setDist2Threshold(double _dist2Threshold);
 
-    /**
-     * Releases all inner buffers.
-     */
-    public native void release();
+    public native int getkNNSamples();
+    public native void setkNNSamples(int _nkNN);
 
-    /** Total number of distinct colors to maintain in histogram. */
-    public native int maxFeatures(); public native BackgroundSubtractorGMG maxFeatures(int maxFeatures);
-    /** Set between 0.0 and 1.0, determines how quickly features are "forgotten" from histograms. */
-    public native double learningRate(); public native BackgroundSubtractorGMG learningRate(double learningRate);
-    /** Number of frames of video to use to initialize histograms. */
-    public native int numInitializationFrames(); public native BackgroundSubtractorGMG numInitializationFrames(int numInitializationFrames);
-    /** Number of discrete levels in each channel to be used in histograms. */
-    public native int quantizationLevels(); public native BackgroundSubtractorGMG quantizationLevels(int quantizationLevels);
-    /** Prior probability that any given pixel is a background pixel. A sensitivity parameter. */
-    public native double backgroundPrior(); public native BackgroundSubtractorGMG backgroundPrior(double backgroundPrior);
-    /** Value above which pixel is determined to be FG. */
-    public native double decisionThreshold(); public native BackgroundSubtractorGMG decisionThreshold(double decisionThreshold);
-    /** Smoothing radius, in pixels, for cleaning up FG image. */
-    public native int smoothingRadius(); public native BackgroundSubtractorGMG smoothingRadius(int smoothingRadius);
-    /** Perform background model update */
-    public native @Cast("bool") boolean updateBackgroundModel(); public native BackgroundSubtractorGMG updateBackgroundModel(boolean updateBackgroundModel);
+    public native @Cast("bool") boolean getDetectShadows();
+    public native void setDetectShadows(@Cast("bool") boolean detectShadows);
+
+    public native int getShadowValue();
+    public native void setShadowValue(int value);
+
+    public native double getShadowThreshold();
+    public native void setShadowThreshold(double threshold);
 }
 
+@Namespace("cv") public static native @Ptr BackgroundSubtractorKNN createBackgroundSubtractorKNN(int history/*=500*/, double dist2Threshold/*=400.0*/,
+                                   @Cast("bool") boolean detectShadows/*=true*/);
+@Namespace("cv") public static native @Ptr BackgroundSubtractorKNN createBackgroundSubtractorKNN();
 
+ // cv
 
 // #endif
 

@@ -7,11 +7,15 @@ import org.bytedeco.javacpp.*;
 import org.bytedeco.javacpp.annotation.*;
 
 import static org.bytedeco.javacpp.opencv_core.*;
+import static org.bytedeco.javacpp.opencv_imgproc.*;
+import static org.bytedeco.javacpp.opencv_video.*;
+import static org.bytedeco.javacpp.opencv_imgcodecs.*;
+import static org.bytedeco.javacpp.opencv_videoio.*;
 
 public class opencv_superres extends org.bytedeco.javacpp.presets.opencv_superres {
     static { Loader.load(); }
 
-// Parsed from <opencv2/superres/superres.hpp>
+// Parsed from <opencv2/superres.hpp>
 
 /*M///////////////////////////////////////////////////////////////////////////////////////
 //
@@ -58,7 +62,7 @@ public class opencv_superres extends org.bytedeco.javacpp.presets.opencv_superre
 // #ifndef __OPENCV_SUPERRES_HPP__
 // #define __OPENCV_SUPERRES_HPP__
 
-// #include "opencv2/core/core.hpp"
+// #include "opencv2/core.hpp"
         @Namespace("cv::superres") public static native @Cast("bool") boolean initModule_superres();
 
         @Namespace("cv::superres") public static class FrameSource extends Pointer {
@@ -75,10 +79,10 @@ public class opencv_superres extends org.bytedeco.javacpp.presets.opencv_superre
 
         @Namespace("cv::superres") public static native @Ptr FrameSource createFrameSource_Empty();
 
-        @Namespace("cv::superres") public static native @Ptr FrameSource createFrameSource_Video(@StdString BytePointer fileName);
-        @Namespace("cv::superres") public static native @Ptr FrameSource createFrameSource_Video(@StdString String fileName);
-        @Namespace("cv::superres") public static native @Ptr FrameSource createFrameSource_Video_GPU(@StdString BytePointer fileName);
-        @Namespace("cv::superres") public static native @Ptr FrameSource createFrameSource_Video_GPU(@StdString String fileName);
+        @Namespace("cv::superres") public static native @Ptr FrameSource createFrameSource_Video(@Str BytePointer fileName);
+        @Namespace("cv::superres") public static native @Ptr FrameSource createFrameSource_Video(@Str String fileName);
+        @Namespace("cv::superres") public static native @Ptr FrameSource createFrameSource_Video_CUDA(@Str BytePointer fileName);
+        @Namespace("cv::superres") public static native @Ptr FrameSource createFrameSource_Video_CUDA(@Str String fileName);
 
         @Namespace("cv::superres") public static native @Ptr FrameSource createFrameSource_Camera(int deviceId/*=0*/);
         @Namespace("cv::superres") public static native @Ptr FrameSource createFrameSource_Camera();
@@ -103,7 +107,7 @@ public class opencv_superres extends org.bytedeco.javacpp.presets.opencv_superre
         // S. Farsiu , D. Robinson, M. Elad, P. Milanfar. Fast and robust multiframe super resolution.
         // Dennis Mitzel, Thomas Pock, Thomas Schoenemann, Daniel Cremers. Video Super Resolution using Duality Based TV-L1 Optical Flow.
         @Namespace("cv::superres") public static native @Ptr SuperResolution createSuperResolution_BTVL1();
-        @Namespace("cv::superres") public static native @Ptr SuperResolution createSuperResolution_BTVL1_GPU();
+        @Namespace("cv::superres") public static native @Ptr SuperResolution createSuperResolution_BTVL1_CUDA();
         @Namespace("cv::superres") public static native @Ptr SuperResolution createSuperResolution_BTVL1_OCL();
     
 
@@ -158,7 +162,7 @@ public class opencv_superres extends org.bytedeco.javacpp.presets.opencv_superre
 // #ifndef __OPENCV_SUPERRES_OPTICAL_FLOW_HPP__
 // #define __OPENCV_SUPERRES_OPTICAL_FLOW_HPP__
 
-// #include "opencv2/core/core.hpp"
+// #include "opencv2/core.hpp"
         @Namespace("cv::superres") public static class DenseOpticalFlowExt extends Algorithm {
             static { Loader.load(); }
             /** Empty constructor. */
@@ -172,19 +176,19 @@ public class opencv_superres extends org.bytedeco.javacpp.presets.opencv_superre
         }
 
         @Namespace("cv::superres") public static native @Ptr DenseOpticalFlowExt createOptFlow_Farneback();
-        @Namespace("cv::superres") public static native @Ptr DenseOpticalFlowExt createOptFlow_Farneback_GPU();
-        
+        @Namespace("cv::superres") public static native @Ptr DenseOpticalFlowExt createOptFlow_Farneback_CUDA();
+        @Namespace("cv::superres") public static native @Ptr DenseOpticalFlowExt createOptFlow_Farneback_OCL();
 
         @Namespace("cv::superres") public static native @Ptr DenseOpticalFlowExt createOptFlow_Simple();
 
         @Namespace("cv::superres") public static native @Ptr DenseOpticalFlowExt createOptFlow_DualTVL1();
-        @Namespace("cv::superres") public static native @Ptr DenseOpticalFlowExt createOptFlow_DualTVL1_GPU();
-        
+        @Namespace("cv::superres") public static native @Ptr DenseOpticalFlowExt createOptFlow_DualTVL1_CUDA();
+        @Namespace("cv::superres") public static native @Ptr DenseOpticalFlowExt createOptFlow_DualTVL1_OCL();
 
-        @Namespace("cv::superres") public static native @Ptr DenseOpticalFlowExt createOptFlow_Brox_GPU();
+        @Namespace("cv::superres") public static native @Ptr DenseOpticalFlowExt createOptFlow_Brox_CUDA();
 
-        @Namespace("cv::superres") public static native @Ptr DenseOpticalFlowExt createOptFlow_PyrLK_GPU();
-        
+        @Namespace("cv::superres") public static native @Ptr DenseOpticalFlowExt createOptFlow_PyrLK_CUDA();
+        @Namespace("cv::superres") public static native @Ptr DenseOpticalFlowExt createOptFlow_PyrLK_OCL();
     
 
 
