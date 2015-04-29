@@ -130,15 +130,51 @@ public class opencv_features2d extends org.bytedeco.javacpp.presets.opencv_featu
 // #include "opencv2/core.hpp"
 // #include "opencv2/flann/miniflann.hpp"
 
+/**
+  @defgroup features2d 2D Features Framework
+  @{
+    @defgroup features2d_main Feature Detection and Description
+    @defgroup features2d_match Descriptor Matchers
+
+Matchers of keypoint descriptors in OpenCV have wrappers with a common interface that enables you to
+easily switch between different algorithms solving the same problem. This section is devoted to
+matching descriptors that are represented as vectors in a multidimensional space. All objects that
+implement vector descriptor matchers inherit the DescriptorMatcher interface.
+
+@note
+   -   An example explaining keypoint matching can be found at
+        opencv_source_code/samples/cpp/descriptor_extractor_matcher.cpp
+    -   An example on descriptor matching evaluation can be found at
+        opencv_source_code/samples/cpp/detector_descriptor_matcher_evaluation.cpp
+    -   An example on one to many image matching can be found at
+        opencv_source_code/samples/cpp/matching_to_many_images.cpp
+
+    @defgroup features2d_draw Drawing Function of Keypoints and Matches
+    @defgroup features2d_category Object Categorization
+
+This section describes approaches based on local 2D features and used to categorize objects.
+
+@note
+   -   A complete Bag-Of-Words sample can be found at
+        opencv_source_code/samples/cpp/bagofwords_classification.cpp
+    -   (Python) An example using the features2D framework to perform object categorization can be
+        found at opencv_source_code/samples/python2/find_obj.py
+
+  @}
+ */
+
+/** @addtogroup features2d
+ *  @{ */
+
 // //! writes vector of keypoints to the file storage
 // CV_EXPORTS void write(FileStorage& fs, const String& name, const std::vector<KeyPoint>& keypoints);
 // //! reads vector of keypoints from the specified file storage node
 // CV_EXPORTS void read(const FileNode& node, CV_OUT std::vector<KeyPoint>& keypoints);
 
-/*
- * A class filters a vector of keypoints.
- * Because now it is difficult to provide a convenient interface for all usage scenarios of the keypoints filter class,
- * it has only several needed by now static methods.
+/** @brief A class filters a vector of keypoints.
+
+ Because now it is difficult to provide a convenient interface for all usage scenarios of the
+ keypoints filter class, it has only several needed by now static methods.
  */
 @Namespace("cv") public static class KeyPointsFilter extends Pointer {
     static { Loader.load(); }
@@ -182,9 +218,8 @@ public class opencv_features2d extends org.bytedeco.javacpp.presets.opencv_featu
 
 /************************************ Base Classes ************************************/
 
-/*
- * Abstract base class for 2D image feature detectors and descriptor extractors
- */
+/** @brief Abstract base class for 2D image feature detectors and descriptor extractors
+*/
 @Namespace("cv") public static class Feature2D extends Algorithm {
     static { Loader.load(); }
     /** Default native constructor. */
@@ -200,12 +235,13 @@ public class opencv_features2d extends org.bytedeco.javacpp.presets.opencv_featu
     }
 
 
-    /*
-     * Detect keypoints in an image.
-     * image        The image.
-     * keypoints    The detected keypoints.
-     * mask         Mask specifying where to look for keypoints (optional). Must be a char
-     *              matrix with non-zero values in the region of interest.
+    /** @brief Detects keypoints in an image (first variant) or image set (second variant).
+
+    @param image Image.
+    @param keypoints The detected keypoints. In the second variant of the method keypoints[i] is a set
+    of keypoints detected in images[i] .
+    @param mask Mask specifying where to look for keypoints (optional). It must be a 8-bit integer
+    matrix with non-zero values in the region of interest.
      */
     public native void detect( @ByVal Mat image,
                                      @StdVector KeyPoint keypoints,
@@ -213,27 +249,49 @@ public class opencv_features2d extends org.bytedeco.javacpp.presets.opencv_featu
     public native void detect( @ByVal Mat image,
                                      @StdVector KeyPoint keypoints );
 
+    /** @overload
+    @param images Image set.
+    @param keypoints The detected keypoints. In the second variant of the method keypoints[i] is a set
+    of keypoints detected in images[i] .
+    @param masks Masks for each input image specifying where to look for keypoints (optional).
+    masks[i] is a mask for images[i].
+    */
     public native void detect( @ByVal MatVector images,
                              @ByRef KeyPointVectorVector keypoints,
                              @ByVal MatVector masks/*=noArray()*/ );
     public native void detect( @ByVal MatVector images,
                              @ByRef KeyPointVectorVector keypoints );
 
-    /*
-     * Compute the descriptors for a set of keypoints in an image.
-     * image        The image.
-     * keypoints    The input keypoints. Keypoints for which a descriptor cannot be computed are removed.
-     * descriptors  Copmputed descriptors. Row i is the descriptor for keypoint i.
+    /** @brief Computes the descriptors for a set of keypoints detected in an image (first variant) or image set
+    (second variant).
+
+    @param image Image.
+    @param keypoints Input collection of keypoints. Keypoints for which a descriptor cannot be
+    computed are removed. Sometimes new keypoints can be added, for example: SIFT duplicates keypoint
+    with several dominant orientations (for each orientation).
+    @param descriptors Computed descriptors. In the second variant of the method descriptors[i] are
+    descriptors computed for a keypoints[i]. Row j is the keypoints (or keypoints[i]) is the
+    descriptor for keypoint j-th keypoint.
      */
     public native void compute( @ByVal Mat image,
                                       @StdVector KeyPoint keypoints,
                                       @ByVal Mat descriptors );
 
+    /** @overload
+
+    @param images Image set.
+    @param keypoints Input collection of keypoints. Keypoints for which a descriptor cannot be
+    computed are removed. Sometimes new keypoints can be added, for example: SIFT duplicates keypoint
+    with several dominant orientations (for each orientation).
+    @param descriptors Computed descriptors. In the second variant of the method descriptors[i] are
+    descriptors computed for a keypoints[i]. Row j is the keypoints (or keypoints[i]) is the
+    descriptor for keypoint j-th keypoint.
+    */
     public native void compute( @ByVal MatVector images,
                               @ByRef KeyPointVectorVector keypoints,
                               @ByVal MatVector descriptors );
 
-    /* Detects keypoints and computes the descriptors */
+    /** Detects keypoints and computes the descriptors */
     public native void detectAndCompute( @ByVal Mat image, @ByVal Mat mask,
                                                @StdVector KeyPoint keypoints,
                                                @ByVal Mat descriptors,
@@ -246,13 +304,25 @@ public class opencv_features2d extends org.bytedeco.javacpp.presets.opencv_featu
     public native int descriptorType();
     public native int defaultNorm();
 
-    // Return true if detector object is empty
+    /** Return true if detector object is empty */
     public native @Cast("bool") boolean empty();
 }
 
-/**
-  BRISK implementation
-*/
+/** Feature detectors in OpenCV have wrappers with a common interface that enables you to easily switch
+between different algorithms solving the same problem. All objects that implement keypoint detectors
+inherit the FeatureDetector interface. */
+
+/** Extractors of keypoint descriptors in OpenCV have wrappers with a common interface that enables you
+to easily switch between different algorithms solving the same problem. This section is devoted to
+computing descriptors represented as vectors in a multidimensional space. All objects that implement
+the vector descriptor extractors inherit the DescriptorExtractor interface.
+ */
+
+/** @addtogroup features2d_main
+ *  @{
+
+/** @brief Class implementing the BRISK keypoint detector and descriptor extractor, described in @cite LCS11 .
+ */
 @Namespace("cv") public static class BRISK extends Feature2D {
     static { Loader.load(); }
     /** Default native constructor. */
@@ -267,9 +337,27 @@ public class opencv_features2d extends org.bytedeco.javacpp.presets.opencv_featu
         return (BRISK)super.position(position);
     }
 
+    /** @brief The BRISK constructor
+
+    @param thresh FAST/AGAST detection threshold score.
+    @param octaves detection octaves. Use 0 to do single scale.
+    @param patternScale apply this scale to the pattern used for sampling the neighbourhood of a
+    keypoint.
+     */
     public static native @Ptr BRISK create(int thresh/*=30*/, int octaves/*=3*/, float patternScale/*=1.0f*/);
     public static native @Ptr BRISK create();
-    // custom setup
+
+    /** @brief The BRISK constructor for a custom pattern
+
+    @param radiusList defines the radii (in pixels) where the samples around a keypoint are taken (for
+    keypoint scale 1).
+    @param numberList defines the number of sampling points on the sampling circle. Must be the same
+    size as radiusList..
+    @param dMax threshold for the short pairings used for descriptor formation (in pixels for keypoint
+    scale 1).
+    @param dMin threshold for the long pairings used for orientation determination (in pixels for
+    keypoint scale 1).
+    @param indexChange index remapping of the bits. */
     public static native @Ptr BRISK create(@StdVector FloatPointer radiusList, @StdVector IntPointer numberList,
             float dMax/*=5.85f*/, float dMin/*=8.2f*/, @StdVector IntPointer indexChange/*=std::vector<int>()*/);
     public static native @Ptr BRISK create(@StdVector FloatPointer radiusList, @StdVector IntPointer numberList);
@@ -281,9 +369,13 @@ public class opencv_features2d extends org.bytedeco.javacpp.presets.opencv_featu
     public static native @Ptr BRISK create(@StdVector float[] radiusList, @StdVector int[] numberList);
 }
 
-/**
- ORB implementation.
-*/
+/** @brief Class implementing the ORB (*oriented BRIEF*) keypoint detector and descriptor extractor
+
+described in @cite RRKB11 . The algorithm uses FAST in pyramids to detect stable keypoints, selects
+the strongest features using FAST or Harris response, finds their orientation using first-order
+moments and computes the descriptors using BRIEF (where the coordinates of random point pairs (or
+k-tuples) are rotated according to the measured orientation).
+ */
 @Namespace("cv") public static class ORB extends Feature2D {
     static { Loader.load(); }
     /** Empty constructor. */
@@ -294,6 +386,36 @@ public class opencv_features2d extends org.bytedeco.javacpp.presets.opencv_featu
     /** enum cv::ORB:: */
     public static final int kBytes = 32, HARRIS_SCORE= 0, FAST_SCORE= 1;
 
+    /** @brief The ORB constructor
+
+    @param nfeatures The maximum number of features to retain.
+    @param scaleFactor Pyramid decimation ratio, greater than 1. scaleFactor==2 means the classical
+    pyramid, where each next level has 4x less pixels than the previous, but such a big scale factor
+    will degrade feature matching scores dramatically. On the other hand, too close to 1 scale factor
+    will mean that to cover certain scale range you will need more pyramid levels and so the speed
+    will suffer.
+    @param nlevels The number of pyramid levels. The smallest level will have linear size equal to
+    input_image_linear_size/pow(scaleFactor, nlevels).
+    @param edgeThreshold This is size of the border where the features are not detected. It should
+    roughly match the patchSize parameter.
+    @param firstLevel It should be 0 in the current implementation.
+    @param WTA_K The number of points that produce each element of the oriented BRIEF descriptor. The
+    default value 2 means the BRIEF where we take a random point pair and compare their brightnesses,
+    so we get 0/1 response. Other possible values are 3 and 4. For example, 3 means that we take 3
+    random points (of course, those point coordinates are random, but they are generated from the
+    pre-defined seed, so each element of BRIEF descriptor is computed deterministically from the pixel
+    rectangle), find point of maximum brightness and output index of the winner (0, 1 or 2). Such
+    output will occupy 2 bits, and therefore it will need a special variant of Hamming distance,
+    denoted as NORM_HAMMING2 (2 bits per bin). When WTA_K=4, we take 4 random points to compute each
+    bin (that will also occupy 2 bits with possible values 0, 1, 2 or 3).
+    @param scoreType The default HARRIS_SCORE means that Harris algorithm is used to rank features
+    (the score is written to KeyPoint::score and is used to retain best nfeatures features);
+    FAST_SCORE is alternative value of the parameter that produces slightly less stable keypoints,
+    but it is a little faster to compute.
+    @param patchSize size of the patch used by the oriented BRIEF descriptor. Of course, on smaller
+    pyramid layers the perceived image area covered by a feature will be larger.
+    @param fastThreshold
+     */
     public static native @Ptr ORB create(int nfeatures/*=500*/, float scaleFactor/*=1.2f*/, int nlevels/*=8*/, int edgeThreshold/*=31*/,
             int firstLevel/*=0*/, int WTA_K/*=2*/, int scoreType/*=ORB::HARRIS_SCORE*/, int patchSize/*=31*/, int fastThreshold/*=20*/);
     public static native @Ptr ORB create();
@@ -326,15 +448,16 @@ public class opencv_features2d extends org.bytedeco.javacpp.presets.opencv_featu
     public native int getFastThreshold();
 }
 
-/**
- Maximal Stable Extremal Regions class.
+/** @brief Maximally stable extremal region extractor. :
 
- The class implements MSER algorithm introduced by J. Matas.
- Unlike SIFT, SURF and many other detectors in OpenCV, this is salient region detector,
- not the salient point detector.
+The class encapsulates all the parameters of the MSER extraction algorithm (see
+<http://en.wikipedia.org/wiki/Maximally_stable_extremal_regions>). Also see
+<http://code.opencv.org/projects/opencv/wiki/MSER> for useful comments and parameters description.
 
- It returns the regions, each of those is encoded as a contour.
-*/
+@note
+   -   (Python) A complete example showing the use of the MSER detector can be found at
+        opencv_source_code/samples/python2/mser.py
+ */
 @Namespace("cv") public static class MSER extends Feature2D {
     static { Loader.load(); }
     /** Empty constructor. */
@@ -366,15 +489,40 @@ public class opencv_features2d extends org.bytedeco.javacpp.presets.opencv_featu
     public native @Cast("bool") boolean getPass2Only();
 }
 
-/** detects corners using FAST algorithm by E. Rosten */
+/** @overload */
 @Namespace("cv") public static native void FAST( @ByVal Mat image, @StdVector KeyPoint keypoints,
                       int threshold, @Cast("bool") boolean nonmaxSuppression/*=true*/ );
 @Namespace("cv") public static native void FAST( @ByVal Mat image, @StdVector KeyPoint keypoints,
                       int threshold );
 
+/** @brief Detects corners using the FAST algorithm
+
+@param image grayscale image where keypoints (corners) are detected.
+@param keypoints keypoints detected on the image.
+@param threshold threshold on difference between intensity of the central pixel and pixels of a
+circle around this pixel.
+@param nonmaxSuppression if true, non-maximum suppression is applied to detected corners
+(keypoints).
+@param type one of the three neighborhoods as defined in the paper:
+FastFeatureDetector::TYPE_9_16, FastFeatureDetector::TYPE_7_12,
+FastFeatureDetector::TYPE_5_8
+
+Detects corners using the FAST algorithm by @cite Rosten06 .
+
+@note In Python API, types are given as cv2.FAST_FEATURE_DETECTOR_TYPE_5_8,
+cv2.FAST_FEATURE_DETECTOR_TYPE_7_12 and cv2.FAST_FEATURE_DETECTOR_TYPE_9_16. For corner
+detection, use cv2.FAST.detect() method.
+ */
 @Namespace("cv") public static native void FAST( @ByVal Mat image, @StdVector KeyPoint keypoints,
                       int threshold, @Cast("bool") boolean nonmaxSuppression, int type );
 
+/** @} features2d_main
+
+ *  @addtogroup features2d_main
+ *  @{
+
+/** @brief Wrapping class for feature detection using the FAST method. :
+ */
 @Namespace("cv") public static class FastFeatureDetector extends Feature2D {
     static { Loader.load(); }
     /** Empty constructor. */
@@ -402,7 +550,8 @@ public class opencv_features2d extends org.bytedeco.javacpp.presets.opencv_featu
     public native int getType();
 }
 
-
+/** @brief Wrapping class for feature detection using the goodFeaturesToTrack function. :
+ */
 @Namespace("cv") public static class GFTTDetector extends Feature2D {
     static { Loader.load(); }
     /** Empty constructor. */
@@ -432,7 +581,37 @@ public class opencv_features2d extends org.bytedeco.javacpp.presets.opencv_featu
     public native double getK();
 }
 
+/** @brief Class for extracting blobs from an image. :
 
+The class implements a simple algorithm for extracting blobs from an image:
+
+1.  Convert the source image to binary images by applying thresholding with several thresholds from
+    minThreshold (inclusive) to maxThreshold (exclusive) with distance thresholdStep between
+    neighboring thresholds.
+2.  Extract connected components from every binary image by findContours and calculate their
+    centers.
+3.  Group centers from several binary images by their coordinates. Close centers form one group that
+    corresponds to one blob, which is controlled by the minDistBetweenBlobs parameter.
+4.  From the groups, estimate final centers of blobs and their radiuses and return as locations and
+    sizes of keypoints.
+
+This class performs several filtrations of returned blobs. You should set filterBy\* to true/false
+to turn on/off corresponding filtration. Available filtrations:
+
+-   **By color**. This filter compares the intensity of a binary image at the center of a blob to
+blobColor. If they differ, the blob is filtered out. Use blobColor = 0 to extract dark blobs
+and blobColor = 255 to extract light blobs.
+-   **By area**. Extracted blobs have an area between minArea (inclusive) and maxArea (exclusive).
+-   **By circularity**. Extracted blobs have circularity
+(\f$\frac{4*\pi*Area}{perimeter * perimeter}\f$) between minCircularity (inclusive) and
+maxCircularity (exclusive).
+-   **By ratio of the minimum inertia to maximum inertia**. Extracted blobs have this ratio
+between minInertiaRatio (inclusive) and maxInertiaRatio (exclusive).
+-   **By convexity**. Extracted blobs have convexity (area / area of blob convex hull) between
+minConvexity (inclusive) and maxConvexity (exclusive).
+
+Default values of parameters are tuned to extract dark circular blobs.
+ */
 @Namespace("cv") public static class SimpleBlobDetector extends Feature2D {
     static { Loader.load(); }
     /** Default native constructor. */
@@ -493,9 +672,16 @@ public class opencv_features2d extends org.bytedeco.javacpp.presets.opencv_featu
   public static native @Ptr SimpleBlobDetector create();
 }
 
+/** @} features2d_main
 
-/**
-KAZE implementation
+ *  @addtogroup features2d_main
+ *  @{
+
+/** @brief Class implementing the KAZE keypoint detector and descriptor extractor, described in @cite ABD12 .
+
+@note AKAZE descriptor can only be used with KAZE or AKAZE keypoints .. [ABD12] KAZE Features. Pablo
+F. Alcantarilla, Adrien Bartoli and Andrew J. Davison. In European Conference on Computer Vision
+(ECCV), Fiorenze, Italy, October 2012.
 */
 @Namespace("cv") public static class KAZE extends Feature2D {
     static { Loader.load(); }
@@ -511,6 +697,16 @@ KAZE implementation
         DIFF_WEICKERT = 2,
         DIFF_CHARBONNIER = 3;
 
+    /** @brief The KAZE constructor
+
+    @param extended Set to enable extraction of extended (128-byte) descriptor.
+    @param upright Set to enable use of upright descriptors (non rotation-invariant).
+    @param threshold Detector response threshold to accept point
+    @param nOctaves Maximum octave evolution of the image
+    @param nOctaveLayers Default number of sublevels per scale level
+    @param diffusivity Diffusivity type. DIFF_PM_G1, DIFF_PM_G2, DIFF_WEICKERT or
+    DIFF_CHARBONNIER
+     */
     public static native @Ptr KAZE create(@Cast("bool") boolean extended/*=false*/, @Cast("bool") boolean upright/*=false*/,
                                         float threshold/*=0.001f*/,
                                         int nOctaves/*=4*/, int nOctaveLayers/*=4*/,
@@ -536,9 +732,13 @@ KAZE implementation
     public native int getDiffusivity();
 }
 
-/**
-AKAZE implementation
-*/
+/** @brief Class implementing the AKAZE keypoint detector and descriptor extractor, described in @cite ANB13 . :
+
+@note AKAZE descriptors can only be used with KAZE or AKAZE keypoints. Try to avoid using *extract*
+and *detect* instead of *operator()* due to performance reasons. .. [ANB13] Fast Explicit Diffusion
+for Accelerated Features in Nonlinear Scale Spaces. Pablo F. Alcantarilla, Jesús Nuevo and Adrien
+Bartoli. In British Machine Vision Conference (BMVC), Bristol, UK, September 2013.
+ */
 @Namespace("cv") public static class AKAZE extends Feature2D {
     static { Loader.load(); }
     /** Empty constructor. */
@@ -556,6 +756,18 @@ AKAZE implementation
         DESCRIPTOR_MLDB_UPRIGHT = 4,
         DESCRIPTOR_MLDB = 5;
 
+    /** @brief The AKAZE constructor
+
+    @param descriptor_type Type of the extracted descriptor: DESCRIPTOR_KAZE,
+    DESCRIPTOR_KAZE_UPRIGHT, DESCRIPTOR_MLDB or DESCRIPTOR_MLDB_UPRIGHT.
+    @param descriptor_size Size of the descriptor in bits. 0 -\> Full size
+    @param descriptor_channels Number of channels in the descriptor (1, 2, 3)
+    @param threshold Detector response threshold to accept point
+    @param nOctaves Maximum octave evolution of the image
+    @param nOctaveLayers Default number of sublevels per scale level
+    @param diffusivity Diffusivity type. DIFF_PM_G1, DIFF_PM_G2, DIFF_WEICKERT or
+    DIFF_CHARBONNIER
+     */
     public static native @Ptr AKAZE create(int descriptor_type/*=AKAZE::DESCRIPTOR_MLDB*/,
                                          int descriptor_size/*=0*/, int descriptor_channels/*=3*/,
                                          float threshold/*=0.001f*/, int nOctaves/*=4*/,
@@ -583,6 +795,8 @@ AKAZE implementation
     public native void setDiffusivity(int diff);
     public native int getDiffusivity();
 }
+
+/** @} features2d_main
 
 /****************************************************************************************\
 *                                      Distance                                          *
@@ -615,39 +829,17 @@ AKAZE implementation
  * Manhattan distance (city block distance) functor
  */
 
-/*
- * Hamming distance functor - counts the bit differences between two strings - useful for the Brief descriptor
- * bit count of A exclusive XOR'ed with B
- */
-@Namespace("cv") public static class Hamming extends Pointer {
-    static { Loader.load(); }
-    /** Default native constructor. */
-    public Hamming() { allocate(); }
-    /** Native array allocator. Access with {@link Pointer#position(int)}. */
-    public Hamming(int size) { allocateArray(size); }
-    /** Pointer cast constructor. Invokes {@link Pointer#Pointer(Pointer)}. */
-    public Hamming(Pointer p) { super(p); }
-    private native void allocate();
-    private native void allocateArray(int size);
-    @Override public Hamming position(int position) {
-        return (Hamming)super.position(position);
-    }
-
-    /** enum cv::Hamming:: */
-    public static final int normType =  NORM_HAMMING;
-
-    /** this will count the bits in a ^ b
-     */
-    public native @Cast("cv::Hamming::ResultType") @Name("operator()") int apply( @Cast("const unsigned char*") BytePointer a, @Cast("const unsigned char*") BytePointer b, int size );
-    public native @Cast("cv::Hamming::ResultType") @Name("operator()") int apply( @Cast("const unsigned char*") ByteBuffer a, @Cast("const unsigned char*") ByteBuffer b, int size );
-    public native @Cast("cv::Hamming::ResultType") @Name("operator()") int apply( @Cast("const unsigned char*") byte[] a, @Cast("const unsigned char*") byte[] b, int size );
-}
-
 /****************************************************************************************\
 *                                  DescriptorMatcher                                     *
 \****************************************************************************************/
-/*
- * Abstract base class for matching two sets of descriptors.
+
+/** @addtogroup features2d_match
+/** @{
+
+/** @brief Abstract base class for matching keypoint descriptors.
+
+It has two groups of match methods: for matching descriptors of an image with another image or with
+an image set.
  */
 @Namespace("cv") @NoOffset public static class DescriptorMatcher extends Algorithm {
     static { Loader.load(); }
@@ -657,76 +849,147 @@ AKAZE implementation
     public DescriptorMatcher(Pointer p) { super(p); }
 
 
-    /*
-     * Add descriptors to train descriptor collection.
-     * descriptors      Descriptors to add. Each descriptors[i] is a descriptors set from one image.
+    /** @brief Adds descriptors to train a CPU(trainDescCollectionis) or GPU(utrainDescCollectionis) descriptor
+    collection.
+
+    If the collection is not empty, the new descriptors are added to existing train descriptors.
+
+    @param descriptors Descriptors to add. Each descriptors[i] is a set of descriptors from the same
+    train image.
      */
     public native void add( @ByVal MatVector descriptors );
-    /*
-     * Get train descriptors collection.
+
+    /** @brief Returns a constant link to the train descriptor collection trainDescCollection .
      */
     public native @Const @ByRef MatVector getTrainDescriptors();
-    /*
-     * Clear train descriptors collection.
+
+    /** @brief Clears the train descriptor collections.
      */
     public native void clear();
 
-    /*
-     * Return true if there are not train descriptors in collection.
+    /** @brief Returns true if there are no train descriptors in the both collections.
      */
     public native @Cast("bool") boolean empty();
-    /*
-     * Return true if the matcher supports mask in match methods.
+
+    /** @brief Returns true if the descriptor matcher supports masking permissible matches.
      */
     public native @Cast("bool") boolean isMaskSupported();
 
-    /*
-     * Train matcher (e.g. train flann index).
-     * In all methods to match the method train() is run every time before matching.
-     * Some descriptor matchers (e.g. BruteForceMatcher) have empty implementation
-     * of this method, other matchers really train their inner structures
-     * (e.g. FlannBasedMatcher trains flann::Index). So nonempty implementation
-     * of train() should check the class object state and do traing/retraining
-     * only if the state requires that (e.g. FlannBasedMatcher trains flann::Index
-     * if it has not trained yet or if new descriptors have been added to the train
-     * collection).
+    /** @brief Trains a descriptor matcher
+
+    Trains a descriptor matcher (for example, the flann index). In all methods to match, the method
+    train() is run every time before matching. Some descriptor matchers (for example, BruteForceMatcher)
+    have an empty implementation of this method. Other matchers really train their inner structures (for
+    example, FlannBasedMatcher trains flann::Index ).
      */
     public native void train();
-    /*
-     * Group of methods to match descriptors from image pair.
-     * Method train() is run in this methods.
+
+    /** @brief Finds the best match for each descriptor from a query set.
+
+    @param queryDescriptors Query set of descriptors.
+    @param trainDescriptors Train set of descriptors. This set is not added to the train descriptors
+    collection stored in the class object.
+    @param matches Matches. If a query descriptor is masked out in mask , no match is added for this
+    descriptor. So, matches size may be smaller than the query descriptors count.
+    @param mask Mask specifying permissible matches between an input query and train matrices of
+    descriptors.
+
+    In the first variant of this method, the train descriptors are passed as an input argument. In the
+    second variant of the method, train descriptors collection that was set by DescriptorMatcher::add is
+    used. Optional mask (or masks) can be passed to specify which query and training descriptors can be
+    matched. Namely, queryDescriptors[i] can be matched with trainDescriptors[j] only if
+    mask.at\<uchar\>(i,j) is non-zero.
      */
-    // Find one best match for each query descriptor (if mask is empty).
     public native void match( @ByVal Mat queryDescriptors, @ByVal Mat trainDescriptors,
                     @StdVector DMatch matches, @ByVal Mat mask/*=noArray()*/ );
     public native void match( @ByVal Mat queryDescriptors, @ByVal Mat trainDescriptors,
                     @StdVector DMatch matches );
-    // Find k best matches for each query descriptor (in increasing order of distances).
-    // compactResult is used when mask is not empty. If compactResult is false matches
-    // vector will have the same size as queryDescriptors rows. If compactResult is true
-    // matches vector will not contain matches for fully masked out query descriptors.
+
+    /** @brief Finds the k best matches for each descriptor from a query set.
+
+    @param queryDescriptors Query set of descriptors.
+    @param trainDescriptors Train set of descriptors. This set is not added to the train descriptors
+    collection stored in the class object.
+    @param mask Mask specifying permissible matches between an input query and train matrices of
+    descriptors.
+    @param matches Matches. Each matches[i] is k or less matches for the same query descriptor.
+    @param k Count of best matches found per each query descriptor or less if a query descriptor has
+    less than k possible matches in total.
+    @param compactResult Parameter used when the mask (or masks) is not empty. If compactResult is
+    false, the matches vector has the same size as queryDescriptors rows. If compactResult is true,
+    the matches vector does not contain matches for fully masked-out query descriptors.
+
+    These extended variants of DescriptorMatcher::match methods find several best matches for each query
+    descriptor. The matches are returned in the distance increasing order. See DescriptorMatcher::match
+    for the details about query and train descriptors.
+     */
     public native void knnMatch( @ByVal Mat queryDescriptors, @ByVal Mat trainDescriptors,
                        @ByRef DMatchVectorVector matches, int k,
                        @ByVal Mat mask/*=noArray()*/, @Cast("bool") boolean compactResult/*=false*/ );
     public native void knnMatch( @ByVal Mat queryDescriptors, @ByVal Mat trainDescriptors,
                        @ByRef DMatchVectorVector matches, int k );
-    // Find best matches for each query descriptor which have distance less than
-    // maxDistance (in increasing order of distances).
+
+    /** @brief For each query descriptor, finds the training descriptors not farther than the specified distance.
+
+    @param queryDescriptors Query set of descriptors.
+    @param trainDescriptors Train set of descriptors. This set is not added to the train descriptors
+    collection stored in the class object.
+    @param matches Found matches.
+    @param compactResult Parameter used when the mask (or masks) is not empty. If compactResult is
+    false, the matches vector has the same size as queryDescriptors rows. If compactResult is true,
+    the matches vector does not contain matches for fully masked-out query descriptors.
+    @param maxDistance Threshold for the distance between matched descriptors. Distance means here
+    metric distance (e.g. Hamming distance), not the distance between coordinates (which is measured
+    in Pixels)!
+    @param mask Mask specifying permissible matches between an input query and train matrices of
+    descriptors.
+
+    For each query descriptor, the methods find such training descriptors that the distance between the
+    query descriptor and the training descriptor is equal or smaller than maxDistance. Found matches are
+    returned in the distance increasing order.
+     */
     public native void radiusMatch( @ByVal Mat queryDescriptors, @ByVal Mat trainDescriptors,
                           @ByRef DMatchVectorVector matches, float maxDistance,
                           @ByVal Mat mask/*=noArray()*/, @Cast("bool") boolean compactResult/*=false*/ );
     public native void radiusMatch( @ByVal Mat queryDescriptors, @ByVal Mat trainDescriptors,
                           @ByRef DMatchVectorVector matches, float maxDistance );
-    /*
-     * Group of methods to match descriptors from one image to image set.
-     * See description of similar methods for matching image pair above.
-     */
+
+    /** @overload
+    @param queryDescriptors Query set of descriptors.
+    @param matches Matches. If a query descriptor is masked out in mask , no match is added for this
+    descriptor. So, matches size may be smaller than the query descriptors count.
+    @param masks Set of masks. Each masks[i] specifies permissible matches between the input query
+    descriptors and stored train descriptors from the i-th image trainDescCollection[i].
+    */
     public native void match( @ByVal Mat queryDescriptors, @StdVector DMatch matches,
                             @ByVal MatVector masks/*=noArray()*/ );
     public native void match( @ByVal Mat queryDescriptors, @StdVector DMatch matches );
+    /** @overload
+    @param queryDescriptors Query set of descriptors.
+    @param matches Matches. Each matches[i] is k or less matches for the same query descriptor.
+    @param k Count of best matches found per each query descriptor or less if a query descriptor has
+    less than k possible matches in total.
+    @param masks Set of masks. Each masks[i] specifies permissible matches between the input query
+    descriptors and stored train descriptors from the i-th image trainDescCollection[i].
+    @param compactResult Parameter used when the mask (or masks) is not empty. If compactResult is
+    false, the matches vector has the same size as queryDescriptors rows. If compactResult is true,
+    the matches vector does not contain matches for fully masked-out query descriptors.
+    */
     public native void knnMatch( @ByVal Mat queryDescriptors, @ByRef DMatchVectorVector matches, int k,
                                @ByVal MatVector masks/*=noArray()*/, @Cast("bool") boolean compactResult/*=false*/ );
     public native void knnMatch( @ByVal Mat queryDescriptors, @ByRef DMatchVectorVector matches, int k );
+    /** @overload
+    @param queryDescriptors Query set of descriptors.
+    @param matches Found matches.
+    @param maxDistance Threshold for the distance between matched descriptors. Distance means here
+    metric distance (e.g. Hamming distance), not the distance between coordinates (which is measured
+    in Pixels)!
+    @param masks Set of masks. Each masks[i] specifies permissible matches between the input query
+    descriptors and stored train descriptors from the i-th image trainDescCollection[i].
+    @param compactResult Parameter used when the mask (or masks) is not empty. If compactResult is
+    false, the matches vector has the same size as queryDescriptors rows. If compactResult is true,
+    the matches vector does not contain matches for fully masked-out query descriptors.
+    */
     public native void radiusMatch( @ByVal Mat queryDescriptors, @ByRef DMatchVectorVector matches, float maxDistance,
                           @ByVal MatVector masks/*=noArray()*/, @Cast("bool") boolean compactResult/*=false*/ );
     public native void radiusMatch( @ByVal Mat queryDescriptors, @ByRef DMatchVectorVector matches, float maxDistance );
@@ -736,24 +999,35 @@ AKAZE implementation
     // Writes matcher object to a file storage
     public native void write( @ByRef FileStorage arg0 );
 
-    // Clone the matcher. If emptyTrainData is false the method create deep copy of the object, i.e. copies
-    // both parameters and train data. If emptyTrainData is true the method create object copy with current parameters
-    // but with empty train data.
+    /** @brief Clones the matcher.
+
+    @param emptyTrainData If emptyTrainData is false, the method creates a deep copy of the object,
+    that is, copies both parameters and train data. If emptyTrainData is true, the method creates an
+    object copy with the current parameters but with empty train data.
+     */
     public native @Ptr DescriptorMatcher clone( @Cast("bool") boolean emptyTrainData/*=false*/ );
     public native @Ptr DescriptorMatcher clone( );
 
+    /** @brief Creates a descriptor matcher of a given type with the default parameters (using default
+    constructor).
+
+    @param descriptorMatcherType Descriptor matcher type. Now the following matcher types are
+    supported:
+    -   `BruteForce` (it uses L2 )
+    -   `BruteForce-L1`
+    -   `BruteForce-Hamming`
+    -   `BruteForce-Hamming(2)`
+    -   `FlannBased`
+     */
     public static native @Ptr DescriptorMatcher create( @Str BytePointer descriptorMatcherType );
     public static native @Ptr DescriptorMatcher create( @Str String descriptorMatcherType );
 }
 
-/*
- * Brute-force descriptor matcher.
- *
- * For each descriptor in the first set, this matcher finds the closest
- * descriptor in the second set by trying each one.
- *
- * For efficiency, BruteForceMatcher is templated on the distance metric.
- * For float descriptors, a common choice would be cv::L2<float>.
+/** @brief Brute-force descriptor matcher.
+
+For each descriptor in the first set, this matcher finds the closest descriptor in the second set
+by trying each one. This descriptor matcher supports masking permissible matches of descriptor
+sets.
  */
 @Namespace("cv") @NoOffset public static class BFMatcher extends DescriptorMatcher {
     static { Loader.load(); }
@@ -766,6 +1040,19 @@ AKAZE implementation
         return (BFMatcher)super.position(position);
     }
 
+    /** @brief Brute-force matcher constructor.
+
+    @param normType One of NORM_L1, NORM_L2, NORM_HAMMING, NORM_HAMMING2. L1 and L2 norms are
+    preferable choices for SIFT and SURF descriptors, NORM_HAMMING should be used with ORB, BRISK and
+    BRIEF, NORM_HAMMING2 should be used with ORB when WTA_K==3 or 4 (see ORB::ORB constructor
+    description).
+    @param crossCheck If it is false, this is will be default BFMatcher behaviour when it finds the k
+    nearest neighbors for each query descriptor. If crossCheck==true, then the knnMatch() method with
+    k=1 will only return pairs (i,j) such that for i-th query descriptor the j-th descriptor in the
+    matcher's collection is the nearest and vice versa, i.e. the BFMatcher will only return consistent
+    pairs. Such technique usually produces best results with minimal number of outliers when there are
+    enough matches. This is alternative to the ratio test, used by D. Lowe in SIFT paper.
+     */
     public BFMatcher( int normType/*=NORM_L2*/, @Cast("bool") boolean crossCheck/*=false*/ ) { allocate(normType, crossCheck); }
     private native void allocate( int normType/*=NORM_L2*/, @Cast("bool") boolean crossCheck/*=false*/ );
     public BFMatcher( ) { allocate(); }
@@ -778,8 +1065,12 @@ AKAZE implementation
 }
 
 
-/*
- * Flann based matcher
+/** @brief Flann-based descriptor matcher.
+
+This matcher trains flann::Index_ on a train descriptor collection and calls its nearest search
+methods to find the best matches. So, this matcher may be faster when matching a large train
+collection than the brute force matcher. FlannBasedMatcher does not support masking permissible
+matches of descriptor sets because flann::Index does not support this. :
  */
 @Namespace("cv") @NoOffset public static class FlannBasedMatcher extends DescriptorMatcher {
     static { Loader.load(); }
@@ -814,10 +1105,15 @@ AKAZE implementation
     public native @Ptr DescriptorMatcher clone( );
 }
 
+/** @} features2d_match
 
 /****************************************************************************************\
 *                                   Drawing functions                                    *
 \****************************************************************************************/
+
+/** @addtogroup features2d_draw
+/** @{ */
+
 @Namespace("cv") public static class DrawMatchesFlags extends Pointer {
     static { Loader.load(); }
     /** Default native constructor. */
@@ -833,24 +1129,63 @@ AKAZE implementation
     }
 
     /** enum cv::DrawMatchesFlags:: */
-    public static final int DEFAULT = 0, // Output image matrix will be created (Mat::create),
-                       // i.e. existing memory of output image may be reused.
-                       // Two source image, matches and single keypoints will be drawn.
-                       // For each keypoint only the center point will be drawn (without
-                       // the circle around keypoint with keypoint size and orientation).
-          DRAW_OVER_OUTIMG = 1, // Output image matrix will not be created (Mat::create).
-                                // Matches will be drawn on existing content of output image.
-          NOT_DRAW_SINGLE_POINTS = 2, // Single keypoints will not be drawn.
-          DRAW_RICH_KEYPOINTS = 4; // For each keypoint the circle around keypoint with keypoint size and
-                                  // orientation will be drawn.
+    public static final int /** Output image matrix will be created (Mat::create),
+ *  i.e. existing memory of output image may be reused.
+ *  Two source image, matches and single keypoints will be drawn.
+ *  For each keypoint only the center point will be drawn (without
+ *  the circle around keypoint with keypoint size and orientation). */
+ DEFAULT = 0,
+          /** Output image matrix will not be created (Mat::create).
+ *  Matches will be drawn on existing content of output image. */
+          DRAW_OVER_OUTIMG = 1,
+          /** Single keypoints will not be drawn. */
+          NOT_DRAW_SINGLE_POINTS = 2,
+          /** For each keypoint the circle around keypoint with keypoint size and
+ *  orientation will be drawn. */
+          DRAW_RICH_KEYPOINTS = 4;
 }
 
-// Draw keypoints.
+/** @brief Draws keypoints.
+
+@param image Source image.
+@param keypoints Keypoints from the source image.
+@param outImage Output image. Its content depends on the flags value defining what is drawn in the
+output image. See possible flags bit values below.
+@param color Color of keypoints.
+@param flags Flags setting drawing features. Possible flags bit values are defined by
+DrawMatchesFlags. See details above in drawMatches .
+
+@note
+For Python API, flags are modified as cv2.DRAW_MATCHES_FLAGS_DEFAULT,
+cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS, cv2.DRAW_MATCHES_FLAGS_DRAW_OVER_OUTIMG,
+cv2.DRAW_MATCHES_FLAGS_NOT_DRAW_SINGLE_POINTS
+ */
 @Namespace("cv") public static native void drawKeypoints( @ByVal Mat image, @StdVector KeyPoint keypoints, @ByVal Mat outImage,
                                @Const @ByRef Scalar color/*=Scalar::all(-1)*/, int flags/*=DrawMatchesFlags::DEFAULT*/ );
 @Namespace("cv") public static native void drawKeypoints( @ByVal Mat image, @StdVector KeyPoint keypoints, @ByVal Mat outImage );
 
-// Draws matches of keypints from two images on output image.
+/** @brief Draws the found matches of keypoints from two images.
+
+@param img1 First source image.
+@param keypoints1 Keypoints from the first source image.
+@param img2 Second source image.
+@param keypoints2 Keypoints from the second source image.
+@param matches1to2 Matches from the first image to the second one, which means that keypoints1[i]
+has a corresponding point in keypoints2[matches[i]] .
+@param outImg Output image. Its content depends on the flags value defining what is drawn in the
+output image. See possible flags bit values below.
+@param matchColor Color of matches (lines and connected keypoints). If matchColor==Scalar::all(-1)
+, the color is generated randomly.
+@param singlePointColor Color of single keypoints (circles), which means that keypoints do not
+have the matches. If singlePointColor==Scalar::all(-1) , the color is generated randomly.
+@param matchesMask Mask determining which matches are drawn. If the mask is empty, all matches are
+drawn.
+@param flags Flags setting drawing features. Possible flags bit values are defined by
+DrawMatchesFlags.
+
+This function draws matches of keypoints from two images in the output image. Match is a line
+connecting two keypoints (circles). See cv::DrawMatchesFlags.
+ */
 @Namespace("cv") public static native void drawMatches( @ByVal Mat img1, @StdVector KeyPoint keypoints1,
                              @ByVal Mat img2, @StdVector KeyPoint keypoints2,
                              @StdVector DMatch matches1to2, @ByVal Mat outImg,
@@ -870,6 +1205,7 @@ AKAZE implementation
                              @Const @ByRef Scalar matchColor/*=Scalar::all(-1)*/, @Const @ByRef Scalar singlePointColor/*=Scalar::all(-1)*/,
                              @Cast("char*") @StdVector byte[] matchesMask/*=std::vector<char>()*/, int flags/*=DrawMatchesFlags::DEFAULT*/ );
 
+/** @overload */
 @Namespace("cv") public static native @Name("drawMatches") void drawMatchesKnn( @ByVal Mat img1, @StdVector KeyPoint keypoints1,
                              @ByVal Mat img2, @StdVector KeyPoint keypoints2,
                              @Const @ByRef DMatchVectorVector matches1to2, @ByVal Mat outImg,
@@ -878,6 +1214,8 @@ AKAZE implementation
 @Namespace("cv") public static native @Name("drawMatches") void drawMatchesKnn( @ByVal Mat img1, @StdVector KeyPoint keypoints1,
                              @ByVal Mat img2, @StdVector KeyPoint keypoints2,
                              @Const @ByRef DMatchVectorVector matches1to2, @ByVal Mat outImg );
+
+/** @} features2d_draw
 
 /****************************************************************************************\
 *   Functions to evaluate the feature detectors and [generic] descriptor extractors      *
@@ -915,8 +1253,14 @@ AKAZE implementation
 /****************************************************************************************\
 *                                     Bag of visual words                                *
 \****************************************************************************************/
-/*
- * Abstract base class for training of a 'bag of visual words' vocabulary from a set of descriptors
+
+/** @addtogroup features2d_category
+/** @{
+
+/** @brief Abstract base class for training the *bag of visual words* vocabulary from a set of descriptors.
+
+For details, see, for example, *Visual Categorization with Bags of Keypoints* by Gabriella Csurka,
+Christopher R. Dance, Lixin Fan, Jutta Willamowski, Cedric Bray, 2004. :
  */
 @Namespace("cv") @NoOffset public static class BOWTrainer extends Pointer {
     static { Loader.load(); }
@@ -926,25 +1270,41 @@ AKAZE implementation
     public BOWTrainer(Pointer p) { super(p); }
 
 
+    /** @brief Adds descriptors to a training set.
+
+    @param descriptors Descriptors to add to a training set. Each row of the descriptors matrix is a
+    descriptor.
+
+    The training set is clustered using clustermethod to construct the vocabulary.
+     */
     public native void add( @Const @ByRef Mat descriptors );
+
+    /** @brief Returns a training set of descriptors.
+    */
     public native @Const @ByRef MatVector getDescriptors();
+
+    /** @brief Returns the count of all descriptors stored in the training set.
+    */
     public native int descriptorsCount();
 
     public native void clear();
 
-    /*
-     * Train visual words vocabulary, that is cluster training descriptors and
-     * compute cluster centers.
-     * Returns cluster centers.
-     *
-     * descriptors      Training descriptors computed on images keypoints.
-     */
+    /** @overload */
     public native @ByVal Mat cluster();
+
+    /** @brief Clusters train descriptors.
+
+    @param descriptors Descriptors to cluster. Each row of the descriptors matrix is a descriptor.
+    Descriptors are not added to the inner train descriptor set.
+
+    The vocabulary consists of cluster centers. So, this method returns the vocabulary. In the first
+    variant of the method, train descriptors stored in the object are clustered. In the second variant,
+    input descriptors are clustered.
+     */
     public native @ByVal Mat cluster( @Const @ByRef Mat descriptors );
 }
 
-/*
- * This is BOWTrainer using cv::kmeans to get vocabulary.
+/** @brief kmeans -based class to train visual vocabulary using the *bag of visual words* approach. :
  */
 @Namespace("cv") @NoOffset public static class BOWKMeansTrainer extends BOWTrainer {
     static { Loader.load(); }
@@ -953,6 +1313,10 @@ AKAZE implementation
     /** Pointer cast constructor. Invokes {@link Pointer#Pointer(Pointer)}. */
     public BOWKMeansTrainer(Pointer p) { super(p); }
 
+    /** @brief The constructor.
+
+    @see cv::kmeans
+    */
     public BOWKMeansTrainer( int clusterCount, @Const @ByRef TermCriteria termcrit/*=TermCriteria()*/,
                           int attempts/*=3*/, int flags/*=KMEANS_PP_CENTERS*/ ) { allocate(clusterCount, termcrit, attempts, flags); }
     private native void allocate( int clusterCount, @Const @ByRef TermCriteria termcrit/*=TermCriteria()*/,
@@ -965,8 +1329,15 @@ AKAZE implementation
     public native @ByVal Mat cluster( @Const @ByRef Mat descriptors );
 }
 
-/*
- * Class to compute image descriptor using bag of visual words.
+/** @brief Class to compute an image descriptor using the *bag of visual words*.
+
+Such a computation consists of the following steps:
+
+1.  Compute descriptors for a given image and its keypoints set.
+2.  Find the nearest visual words from the vocabulary for each keypoint descriptor.
+3.  Compute the bag-of-words image descriptor as is a normalized histogram of vocabulary words
+encountered in the image. The i-th bin of the histogram is a frequency of i-th word of the
+vocabulary in the given image.
  */
 @Namespace("cv") @NoOffset public static class BOWImgDescriptorExtractor extends Pointer {
     static { Loader.load(); }
@@ -975,26 +1346,69 @@ AKAZE implementation
     /** Pointer cast constructor. Invokes {@link Pointer#Pointer(Pointer)}. */
     public BOWImgDescriptorExtractor(Pointer p) { super(p); }
 
+    /** @brief The constructor.
+
+    @param dextractor Descriptor extractor that is used to compute descriptors for an input image and
+    its keypoints.
+    @param dmatcher Descriptor matcher that is used to find the nearest word of the trained vocabulary
+    for each keypoint descriptor of the image.
+     */
     public BOWImgDescriptorExtractor( @Cast("cv::DescriptorExtractor*") @Ptr Feature2D dextractor,
                                    @Ptr DescriptorMatcher dmatcher ) { allocate(dextractor, dmatcher); }
     private native void allocate( @Cast("cv::DescriptorExtractor*") @Ptr Feature2D dextractor,
                                    @Ptr DescriptorMatcher dmatcher );
+    /** @overload */
     public BOWImgDescriptorExtractor( @Ptr DescriptorMatcher dmatcher ) { allocate(dmatcher); }
     private native void allocate( @Ptr DescriptorMatcher dmatcher );
 
+    /** @brief Sets a visual vocabulary.
+
+    @param vocabulary Vocabulary (can be trained using the inheritor of BOWTrainer ). Each row of the
+    vocabulary is a visual word (cluster center).
+     */
     public native void setVocabulary( @Const @ByRef Mat vocabulary );
+
+    /** @brief Returns the set vocabulary.
+    */
     public native @Const @ByRef Mat getVocabulary();
+
+    /** @brief Computes an image descriptor using the set visual vocabulary.
+
+    @param image Image, for which the descriptor is computed.
+    @param keypoints Keypoints detected in the input image.
+    @param imgDescriptor Computed output image descriptor.
+    @param pointIdxsOfClusters Indices of keypoints that belong to the cluster. This means that
+    pointIdxsOfClusters[i] are keypoint indices that belong to the i -th cluster (word of vocabulary)
+    returned if it is non-zero.
+    @param descriptors Descriptors of the image keypoints that are returned if they are non-zero.
+     */
     public native void compute( @ByVal Mat image, @StdVector KeyPoint keypoints, @ByVal Mat imgDescriptor,
                       IntVectorVector pointIdxsOfClusters/*=0*/, Mat descriptors/*=0*/ );
     public native void compute( @ByVal Mat image, @StdVector KeyPoint keypoints, @ByVal Mat imgDescriptor );
+    /** @overload
+    @param keypointDescriptors Computed descriptors to match with vocabulary.
+    @param imgDescriptor Computed output image descriptor.
+    @param pointIdxsOfClusters Indices of keypoints that belong to the cluster. This means that
+    pointIdxsOfClusters[i] are keypoint indices that belong to the i -th cluster (word of vocabulary)
+    returned if it is non-zero.
+    */
     public native void compute( @ByVal Mat keypointDescriptors, @ByVal Mat imgDescriptor,
                       IntVectorVector pointIdxsOfClusters/*=0*/ );
     public native void compute( @ByVal Mat keypointDescriptors, @ByVal Mat imgDescriptor );
     // compute() is not constant because DescriptorMatcher::match is not constant
 
+    /** @brief Returns an image descriptor size if the vocabulary is set. Otherwise, it returns 0.
+    */
     public native int descriptorSize();
+
+    /** @brief Returns an image descriptor type.
+     */
     public native int descriptorType();
 }
+
+/** @} features2d_category
+
+ *  @} features2d */
 
  /* namespace cv */
 

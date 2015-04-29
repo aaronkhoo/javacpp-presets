@@ -71,6 +71,10 @@ public class opencv_objdetect extends org.bytedeco.javacpp.helper.opencv_objdete
 // #include <vector>
 // #endif
 
+/** @addtogroup objdetect_c
+  @{
+  */
+
 /****************************************************************************************\
 *                         Haar-like Object Detection functions                           *
 \****************************************************************************************/
@@ -238,6 +242,7 @@ public static native int cvRunHaarClassifierCascade( @Const CvHaarClassifierCasc
 public static native int cvRunHaarClassifierCascade( @Const CvHaarClassifierCascade cascade,
                                        @ByVal @Cast("CvPoint*") int[] pt);
 
+/** @} objdetect_c */
 
 // #ifdef __cplusplus
 
@@ -327,10 +332,73 @@ public static native CvSeq cvHaarDetectObjectsForROC( @Const CvArr image,
 
 // #include "opencv2/core.hpp"
 
+/**
+@defgroup objdetect Object Detection
+
+Haar Feature-based Cascade Classifier for Object Detection
+----------------------------------------------------------
+
+The object detector described below has been initially proposed by Paul Viola @cite Viola01 and
+improved by Rainer Lienhart @cite Lienhart02 .
+
+First, a classifier (namely a *cascade of boosted classifiers working with haar-like features*) is
+trained with a few hundred sample views of a particular object (i.e., a face or a car), called
+positive examples, that are scaled to the same size (say, 20x20), and negative examples - arbitrary
+images of the same size.
+
+After a classifier is trained, it can be applied to a region of interest (of the same size as used
+during the training) in an input image. The classifier outputs a "1" if the region is likely to show
+the object (i.e., face/car), and "0" otherwise. To search for the object in the whole image one can
+move the search window across the image and check every location using the classifier. The
+classifier is designed so that it can be easily "resized" in order to be able to find the objects of
+interest at different sizes, which is more efficient than resizing the image itself. So, to find an
+object of an unknown size in the image the scan procedure should be done several times at different
+scales.
+
+The word "cascade" in the classifier name means that the resultant classifier consists of several
+simpler classifiers (*stages*) that are applied subsequently to a region of interest until at some
+stage the candidate is rejected or all the stages are passed. The word "boosted" means that the
+classifiers at every stage of the cascade are complex themselves and they are built out of basic
+classifiers using one of four different boosting techniques (weighted voting). Currently Discrete
+Adaboost, Real Adaboost, Gentle Adaboost and Logitboost are supported. The basic classifiers are
+decision-tree classifiers with at least 2 leaves. Haar-like features are the input to the basic
+classifiers, and are calculated as described below. The current algorithm uses the following
+Haar-like features:
+
+![image](pics/haarfeatures.png)
+
+The feature used in a particular classifier is specified by its shape (1a, 2b etc.), position within
+the region of interest and the scale (this scale is not the same as the scale used at the detection
+stage, though these two scales are multiplied). For example, in the case of the third line feature
+(2c) the response is calculated as the difference between the sum of image pixels under the
+rectangle covering the whole feature (including the two white stripes and the black stripe in the
+middle) and the sum of the image pixels under the black stripe multiplied by 3 in order to
+compensate for the differences in the size of areas. The sums of pixel values over a rectangular
+regions are calculated rapidly using integral images (see below and the integral description).
+
+To see the object detector at work, have a look at the facedetect demo:
+<https://github.com/Itseez/opencv/tree/master/samples/cpp/dbt_face_detection.cpp>
+
+The following reference is for the detection part only. There is a separate application called
+opencv_traincascade that can train a cascade of boosted classifiers from a set of samples.
+
+@note In the new C++ interface it is also possible to use LBP (local binary pattern) features in
+addition to Haar-like features. .. [Viola01] Paul Viola and Michael J. Jones. Rapid Object Detection
+using a Boosted Cascade of Simple Features. IEEE CVPR, 2001. The paper is available online at
+<http://research.microsoft.com/en-us/um/people/viola/Pubs/Detect/violaJones_CVPR2001.pdf>
+
+@{
+    @defgroup objdetect_c C API
+@}
+ */
+
+/** @addtogroup objdetect
+ *  @{
+
 ///////////////////////////// Object Detection ////////////////////////////
 
-// class for grouping object candidates, detected by Cascade Classifier, HOG etc.
-// instance of the class is to be passed to cv::partition (see cxoperations.hpp)
+ *  class for grouping object candidates, detected by Cascade Classifier, HOG etc.
+ *  instance of the class is to be passed to cv::partition (see cxoperations.hpp) */
 @Namespace("cv") @NoOffset public static class SimilarRects extends Pointer {
     static { Loader.load(); }
     /** Empty constructor. */
@@ -344,8 +412,24 @@ public static native CvSeq cvHaarDetectObjectsForROC( @Const CvArr image,
     public native double eps(); public native SimilarRects eps(double eps);
 }
 
+/** @brief Groups the object candidate rectangles.
+
+@param rectList Input/output vector of rectangles. Output vector includes retained and grouped
+rectangles. (The Python list is not modified in place.)
+@param groupThreshold Minimum possible number of rectangles minus 1. The threshold is used in a
+group of rectangles to retain it.
+@param eps Relative difference between sides of the rectangles to merge them into a group.
+
+The function is a wrapper for the generic function partition . It clusters all the input rectangles
+using the rectangle equivalence criteria that combines rectangles with similar sizes and similar
+locations. The similarity is defined by eps. When eps=0 , no clustering is done at all. If
+\f$\texttt{eps}\rightarrow +\inf\f$ , all the rectangles are put in one cluster. Then, the small
+clusters containing less than or equal to groupThreshold rectangles are rejected. In each other
+cluster, the average rectangle is computed and put into the output rectangle list.
+ */
 @Namespace("cv") public static native void groupRectangles(@StdVector Rect rectList, int groupThreshold, double eps/*=0.2*/);
 @Namespace("cv") public static native void groupRectangles(@StdVector Rect rectList, int groupThreshold);
+/** @overload */
 @Namespace("cv") public static native void groupRectangles(@StdVector Rect rectList, @StdVector IntPointer weights,
                                   int groupThreshold, double eps/*=0.2*/);
 @Namespace("cv") public static native void groupRectangles(@StdVector Rect rectList, @StdVector IntPointer weights,
@@ -358,12 +442,14 @@ public static native CvSeq cvHaarDetectObjectsForROC( @Const CvArr image,
                                   int groupThreshold, double eps/*=0.2*/);
 @Namespace("cv") public static native void groupRectangles(@StdVector Rect rectList, @StdVector int[] weights,
                                   int groupThreshold);
+/** @overload */
 @Namespace("cv") public static native void groupRectangles(@StdVector Rect rectList, int groupThreshold,
                                   double eps, @StdVector IntPointer weights, @StdVector DoublePointer levelWeights );
 @Namespace("cv") public static native void groupRectangles(@StdVector Rect rectList, int groupThreshold,
                                   double eps, @StdVector IntBuffer weights, @StdVector DoubleBuffer levelWeights );
 @Namespace("cv") public static native void groupRectangles(@StdVector Rect rectList, int groupThreshold,
                                   double eps, @StdVector int[] weights, @StdVector double[] levelWeights );
+/** @overload */
 @Namespace("cv") public static native void groupRectangles(@StdVector Rect rectList, @StdVector IntPointer rejectLevels,
                                   @StdVector DoublePointer levelWeights, int groupThreshold, double eps/*=0.2*/);
 @Namespace("cv") public static native void groupRectangles(@StdVector Rect rectList, @StdVector IntPointer rejectLevels,
@@ -376,6 +462,7 @@ public static native CvSeq cvHaarDetectObjectsForROC( @Const CvArr image,
                                   @StdVector double[] levelWeights, int groupThreshold, double eps/*=0.2*/);
 @Namespace("cv") public static native void groupRectangles(@StdVector Rect rectList, @StdVector int[] rejectLevels,
                                   @StdVector double[] levelWeights, int groupThreshold);
+/** @overload */
 @Namespace("cv") public static native void groupRectangles_meanshift(@StdVector Rect rectList, @StdVector DoublePointer foundWeights,
                                             @StdVector DoublePointer foundScales,
                                             double detectThreshold/*=0.0*/, @ByVal Size winDetSize/*=Size(64, 128)*/);
@@ -479,6 +566,8 @@ public static final int CASCADE_DO_CANNY_PRUNING    = 1,
     public native @Ptr MaskGenerator getMaskGenerator();
 }
 
+/** @brief Cascade classifier class for object detection.
+ */
 @Namespace("cv") @NoOffset public static class CascadeClassifier extends Pointer {
     static { Loader.load(); }
     /** Pointer cast constructor. Invokes {@link Pointer#Pointer(Pointer)}. */
@@ -492,14 +581,51 @@ public static final int CASCADE_DO_CANNY_PRUNING    = 1,
 
     public CascadeClassifier() { allocate(); }
     private native void allocate();
+    /** @brief Loads a classifier from a file.
+
+    @param filename Name of the file from which the classifier is loaded.
+     */
     public CascadeClassifier(@Str BytePointer filename) { allocate(filename); }
     private native void allocate(@Str BytePointer filename);
     public CascadeClassifier(@Str String filename) { allocate(filename); }
     private native void allocate(@Str String filename);
+    /** @brief Checks whether the classifier has been loaded.
+    */
     public native @Cast("bool") boolean empty();
+    /** @brief Loads a classifier from a file.
+
+    @param filename Name of the file from which the classifier is loaded. The file may contain an old
+    HAAR classifier trained by the haartraining application or a new cascade classifier trained by the
+    traincascade application.
+     */
     public native @Cast("bool") boolean load( @Str BytePointer filename );
     public native @Cast("bool") boolean load( @Str String filename );
+    /** @brief Reads a classifier from a FileStorage node.
+
+    @note The file may contain a new cascade classifier (trained traincascade application) only.
+     */
     public native @Cast("bool") boolean read( @Const @ByRef FileNode node );
+
+    /** @brief Detects objects of different sizes in the input image. The detected objects are returned as a list
+    of rectangles.
+
+    @param image Matrix of the type CV_8U containing an image where objects are detected.
+    @param objects Vector of rectangles where each rectangle contains the detected object, the
+    rectangles may be partially outside the original image.
+    @param scaleFactor Parameter specifying how much the image size is reduced at each image scale.
+    @param minNeighbors Parameter specifying how many neighbors each candidate rectangle should have
+    to retain it.
+    @param flags Parameter with the same meaning for an old cascade as in the function
+    cvHaarDetectObjects. It is not used for a new cascade.
+    @param minSize Minimum possible object size. Objects smaller than that are ignored.
+    @param maxSize Maximum possible object size. Objects larger than that are ignored.
+
+    The function is parallelized with the TBB library.
+
+    @note
+       -   (Python) A face detection example using cascade classifiers can be found at
+            opencv_source_code/samples/python2/facedetect.py
+    */
     public native void detectMultiScale( @ByVal Mat image,
                               @StdVector Rect objects,
                               double scaleFactor/*=1.1*/,
@@ -509,6 +635,21 @@ public static final int CASCADE_DO_CANNY_PRUNING    = 1,
     public native void detectMultiScale( @ByVal Mat image,
                               @StdVector Rect objects );
 
+    /** @overload
+    @param image Matrix of the type CV_8U containing an image where objects are detected.
+    @param objects Vector of rectangles where each rectangle contains the detected object, the
+    rectangles may be partially outside the original image.
+    @param numDetections Vector of detection numbers for the corresponding objects. An object's number
+    of detections is the number of neighboring positively classified rectangles that were joined
+    together to form the object.
+    @param scaleFactor Parameter specifying how much the image size is reduced at each image scale.
+    @param minNeighbors Parameter specifying how many neighbors each candidate rectangle should have
+    to retain it.
+    @param flags Parameter with the same meaning for an old cascade as in the function
+    cvHaarDetectObjects. It is not used for a new cascade.
+    @param minSize Minimum possible object size. Objects smaller than that are ignored.
+    @param maxSize Maximum possible object size. Objects larger than that are ignored.
+    */
     public native @Name("detectMultiScale") void detectMultiScale2( @ByVal Mat image,
                               @StdVector Rect objects,
                               @StdVector IntPointer numDetections,
@@ -540,6 +681,9 @@ public static final int CASCADE_DO_CANNY_PRUNING    = 1,
                               @StdVector Rect objects,
                               @StdVector int[] numDetections );
 
+    /** @overload
+    if `outputRejectLevels` is `true` returns `rejectLevels` and `levelWeights`
+    */
     public native @Name("detectMultiScale") void detectMultiScale3( @ByVal Mat image,
                                       @StdVector Rect objects,
                                       @StdVector IntPointer rejectLevels,
@@ -598,7 +742,7 @@ public static final int CASCADE_DO_CANNY_PRUNING    = 1,
 
 //////////////// HOG (Histogram-of-Oriented-Gradients) Descriptor and Object Detector //////////////
 
-// struct for detection region of interest (ROI)
+/** struct for detection region of interest (ROI) */
 @Namespace("cv") public static class DetectionROI extends Pointer {
     static { Loader.load(); }
     /** Default native constructor. */
@@ -613,11 +757,11 @@ public static final int CASCADE_DO_CANNY_PRUNING    = 1,
         return (DetectionROI)super.position(position);
     }
 
-   // scale(size) of the bounding box
+   /** scale(size) of the bounding box */
    public native double scale(); public native DetectionROI scale(double scale);
-   // set of requrested locations to be evaluated
+   /** set of requrested locations to be evaluated */
    public native @StdVector Point locations(); public native DetectionROI locations(Point locations);
-   // vector that will contain confidence values for each location
+   /** vector that will contain confidence values for each location */
    public native @StdVector DoublePointer confidences(); public native DetectionROI confidences(DoublePointer confidences);
 }
 
@@ -702,7 +846,7 @@ public static final int CASCADE_DO_CANNY_PRUNING    = 1,
     public native void compute(@ByVal Mat img,
                              @StdVector float[] descriptors);
 
-    //with found weights output
+    /** with found weights output */
     public native void detect(@Const @ByRef Mat img, @StdVector Point foundLocations,
                             @StdVector DoublePointer weights,
                             double hitThreshold/*=0*/, @ByVal Size winStride/*=Size()*/,
@@ -724,14 +868,14 @@ public static final int CASCADE_DO_CANNY_PRUNING    = 1,
                             @StdVector Point searchLocations/*=std::vector<Point>()*/);
     public native void detect(@Const @ByRef Mat img, @StdVector Point foundLocations,
                             @StdVector double[] weights);
-    //without found weights output
+    /** without found weights output */
     public native void detect(@Const @ByRef Mat img, @StdVector Point foundLocations,
                             double hitThreshold/*=0*/, @ByVal Size winStride/*=Size()*/,
                             @ByVal Size padding/*=Size()*/,
                             @StdVector Point searchLocations/*=std::vector<Point>()*/);
     public native void detect(@Const @ByRef Mat img, @StdVector Point foundLocations);
 
-    //with result weights output
+    /** with result weights output */
     public native void detectMultiScale(@ByVal Mat img, @StdVector Rect foundLocations,
                                       @StdVector DoublePointer foundWeights, double hitThreshold/*=0*/,
                                       @ByVal Size winStride/*=Size()*/, @ByVal Size padding/*=Size()*/, double scale/*=1.05*/,
@@ -750,7 +894,7 @@ public static final int CASCADE_DO_CANNY_PRUNING    = 1,
                                       double finalThreshold/*=2.0*/,@Cast("bool") boolean useMeanshiftGrouping/*=false*/);
     public native void detectMultiScale(@ByVal Mat img, @StdVector Rect foundLocations,
                                       @StdVector double[] foundWeights);
-    //without found weights output
+    /** without found weights output */
     public native void detectMultiScale(@ByVal Mat img, @StdVector Rect foundLocations,
                                       double hitThreshold/*=0*/, @ByVal Size winStride/*=Size()*/,
                                       @ByVal Size padding/*=Size()*/, double scale/*=1.05*/,
@@ -780,7 +924,7 @@ public static final int CASCADE_DO_CANNY_PRUNING    = 1,
     public native int nlevels(); public native HOGDescriptor nlevels(int nlevels);
 
 
-    // evaluate specified ROI and return confidence value for each location
+    /** evaluate specified ROI and return confidence value for each location */
     public native void detectROI(@Const @ByRef Mat img, @StdVector Point locations,
                                        @StdVector Point foundLocations, @StdVector DoublePointer confidences,
                                        double hitThreshold/*=0*/, @ByVal Size winStride/*=Size()*/,
@@ -800,7 +944,7 @@ public static final int CASCADE_DO_CANNY_PRUNING    = 1,
     public native void detectROI(@Const @ByRef Mat img, @StdVector Point locations,
                                        @StdVector Point foundLocations, @StdVector double[] confidences);
 
-    // evaluate specified ROI and return confidence value for each location in multiple scales
+    /** evaluate specified ROI and return confidence value for each location in multiple scales */
     public native void detectMultiScaleROI(@Const @ByRef Mat img,
                                                            @StdVector Rect foundLocations,
                                                            @StdVector DetectionROI locations,
@@ -810,7 +954,7 @@ public static final int CASCADE_DO_CANNY_PRUNING    = 1,
                                                            @StdVector Rect foundLocations,
                                                            @StdVector DetectionROI locations);
 
-    // read/parse Dalal's alt model file
+    /** read/parse Dalal's alt model file */
     public native void readALTModel(@Str BytePointer modelfile);
     public native void readALTModel(@Str String modelfile);
     public native void groupRectangles(@StdVector Rect rectList, @StdVector DoublePointer weights, int groupThreshold, double eps);
@@ -818,9 +962,15 @@ public static final int CASCADE_DO_CANNY_PRUNING    = 1,
     public native void groupRectangles(@StdVector Rect rectList, @StdVector double[] weights, int groupThreshold, double eps);
 }
 
+/** @} objdetect */
+
 
 
 // #include "opencv2/objdetect/detection_based_tracker.hpp"
+
+// #ifndef DISABLE_OPENCV_24_COMPATIBILITY
+// #include "opencv2/objdetect/objdetect_c.h"
+// #endif
 
 // #endif
 
@@ -877,6 +1027,10 @@ public static final int CASCADE_DO_CANNY_PRUNING    = 1,
 //   (defined(__cplusplus) &&  __cplusplus > 201103L) || (defined(_MSC_VER) && _MSC_VER >= 1700)
 
 // #include <vector>
+
+/** @addtogroup objdetect
+ *  @{ */
+
 @Namespace("cv") @NoOffset public static class DetectionBasedTracker extends Pointer {
     static { Loader.load(); }
     /** Empty constructor. */
@@ -960,6 +1114,9 @@ public static final int CASCADE_DO_CANNY_PRUNING    = 1,
 
         public native int addObject(@Const @ByRef Rect location);
 }
+
+/** @} objdetect */
+
  //end of cv namespace
 // #endif
 

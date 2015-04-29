@@ -71,6 +71,9 @@ public class opencv_videostab extends org.bytedeco.javacpp.presets.opencv_videos
 // #include <vector>
 // #include "opencv2/core.hpp"
 
+/** @addtogroup videostab
+ *  @{ */
+
 @Namespace("cv::videostab") public static class IFrameSource extends Pointer {
     static { Loader.load(); }
     /** Empty constructor. */
@@ -124,6 +127,8 @@ public class opencv_videostab extends org.bytedeco.javacpp.presets.opencv_videos
     public native int count();
     public native double fps();
 }
+
+/** @} */
 
  // namespace videostab
  // namespace cv
@@ -180,6 +185,9 @@ public class opencv_videostab extends org.bytedeco.javacpp.presets.opencv_videos
 
 // #include "opencv2/core.hpp"
 
+/** @addtogroup videostab
+ *  @{ */
+
 @Namespace("cv::videostab") public static class ILog extends Pointer {
     static { Loader.load(); }
     /** Empty constructor. */
@@ -226,6 +234,8 @@ public class opencv_videostab extends org.bytedeco.javacpp.presets.opencv_videos
     public native void print(@Cast("const char*") BytePointer format);
     public native void print(String format);
 }
+
+/** @} */
 
  // namespace videostab
  // namespace cv
@@ -285,7 +295,13 @@ public class opencv_videostab extends org.bytedeco.javacpp.presets.opencv_videos
 // #include <algorithm>
 // #include "opencv2/core.hpp"
 
-// See http://iwi.eldoc.ub.rug.nl/FILES/root/2004/JGraphToolsTelea/2004JGraphToolsTelea.pdf
+/** @addtogroup videostab_marching
+ *  @{
+
+/** @brief Describes the Fast Marching Method implementation.
+
+  See http://iwi.eldoc.ub.rug.nl/FILES/root/2004/JGraphToolsTelea/2004JGraphToolsTelea.pdf
+ */
 @Namespace("cv::videostab") @NoOffset public static class FastMarchingMethod extends Pointer {
     static { Loader.load(); }
     /** Pointer cast constructor. Invokes {@link Pointer#Pointer(Pointer)}. */
@@ -300,8 +316,21 @@ public class opencv_videostab extends org.bytedeco.javacpp.presets.opencv_videos
     public FastMarchingMethod() { allocate(); }
     private native void allocate();
 
+    /** @brief Template method that runs the Fast Marching Method.
+
+    @param mask Image mask. 0 value indicates that the pixel value must be inpainted, 255 indicates
+    that the pixel value is known, other values aren't acceptable.
+    @param inpaint Inpainting functor that overloads void operator ()(int x, int y).
+    @return Inpainting functor.
+     */
+
+    /**
+    @return Distance map that's created during working of the method.
+    */
     public native @ByVal Mat distanceMap();
 }
+
+/** @} */
 
  // namespace videostab
  // namespace cv
@@ -363,6 +392,9 @@ public class opencv_videostab extends org.bytedeco.javacpp.presets.opencv_videos
 
 // #ifdef HAVE_OPENCV_CUDAOPTFLOW
 // #endif
+
+/** @addtogroup videostab
+ *  @{ */
 
 @Namespace("cv::videostab") public static class ISparseOptFlowEstimator extends Pointer {
     static { Loader.load(); }
@@ -434,6 +466,8 @@ public class opencv_videostab extends org.bytedeco.javacpp.presets.opencv_videos
 
 // #endif
 
+/** @} */
+
  // namespace videostab
  // namespace cv
 
@@ -490,6 +524,11 @@ public class opencv_videostab extends org.bytedeco.javacpp.presets.opencv_videos
 // #include <cmath>
 // #include "opencv2/core.hpp"
 
+/** @addtogroup videostab_motion
+ *  @{
+
+/** @brief Describes motion model between two point clouds.
+ */
 /** enum cv::videostab::MotionModel */
 public static final int
     MM_TRANSLATION = 0,
@@ -501,6 +540,8 @@ public static final int
     MM_HOMOGRAPHY = 6,
     MM_UNKNOWN = 7;
 
+/** @brief Describes RANSAC method parameters.
+ */
 @Namespace("cv::videostab") @NoOffset public static class RansacParams extends Pointer {
     static { Loader.load(); }
     /** Pointer cast constructor. Invokes {@link Pointer#Pointer(Pointer)}. */
@@ -512,23 +553,41 @@ public static final int
         return (RansacParams)super.position(position);
     }
 
-    public native int size(); public native RansacParams size(int size); // subset size
-    public native float thresh(); public native RansacParams thresh(float thresh); // max error to classify as inlier
-    public native float eps(); public native RansacParams eps(float eps); // max outliers ratio
-    public native float prob(); public native RansacParams prob(float prob); // probability of success
+    /** subset size */
+    public native int size(); public native RansacParams size(int size);
+    /** max error to classify as inlier */
+    public native float thresh(); public native RansacParams thresh(float thresh);
+    /** max outliers ratio */
+    public native float eps(); public native RansacParams eps(float eps);
+    /** probability of success */
+    public native float prob(); public native RansacParams prob(float prob);
 
     public RansacParams() { allocate(); }
     private native void allocate();
+    /** @brief Constructor
+    @param size Subset size.
+    @param thresh Maximum re-projection error value to classify as inlier.
+    @param eps Maximum ratio of incorrect correspondences.
+    @param prob Required success probability.
+     */
     public RansacParams(int size, float thresh, float eps, float prob) { allocate(size, thresh, eps, prob); }
     private native void allocate(int size, float thresh, float eps, float prob);
 
+    /**
+    @return Number of iterations that'll be performed by RANSAC method.
+    */
     public native int niters();
 
+    /**
+    @param model Motion model. See cv::videostab::MotionModel.
+    @return Default RANSAC method parameters for the given motion model.
+    */
     public static native @ByVal RansacParams default2dMotion(@Cast("cv::videostab::MotionModel") int model);
 }
 
 
 
+/** @} */
 
  // namespace videostab
  // namespace cv
@@ -587,6 +646,9 @@ public static final int
 // #include "opencv2/core.hpp"
 // #include "opencv2/videostab/motion_core.hpp"
 
+/** @addtogroup videostab
+ *  @{ */
+
 @Namespace("cv::videostab") public static class IOutlierRejector extends Pointer {
     static { Loader.load(); }
     /** Empty constructor. */
@@ -640,6 +702,8 @@ public static final int
     public native void process(
                 @ByVal Size frameSize, @ByVal Mat points0, @ByVal Mat points1, @ByVal Mat mask);
 }
+
+/** @} */
 
  // namespace videostab
  // namespace cv
@@ -706,6 +770,19 @@ public static final int
 // #ifdef HAVE_OPENCV_CUDAIMGPROC
 // #endif
 
+/** @addtogroup videostab_motion
+ *  @{
+
+/** @brief Estimates best global motion between two 2D point clouds in the least-squares sense.
+
+@note Works in-place and changes input point arrays.
+
+@param points0 Source set of 2D points (32F).
+@param points1 Destination set of 2D points (32F).
+@param model Motion model (up to MM_AFFINE).
+@param rmse Final root-mean-square error.
+@return 3x3 2D transformation matrix (32F).
+ */
 @Namespace("cv::videostab") public static native @ByVal Mat estimateGlobalMotionLeastSquares(
         @ByVal Mat points0, @ByVal Mat points1, int model/*=MM_AFFINE*/,
         FloatPointer rmse/*=0*/);
@@ -718,6 +795,15 @@ public static final int
         @ByVal Mat points0, @ByVal Mat points1, int model/*=MM_AFFINE*/,
         float[] rmse/*=0*/);
 
+/** @brief Estimates best global motion between two 2D point clouds robustly (using RANSAC method).
+
+@param points0 Source set of 2D points (32F).
+@param points1 Destination set of 2D points (32F).
+@param model Motion model. See cv::videostab::MotionModel.
+@param params RANSAC method parameters. See videostab::RansacParams.
+@param rmse Final root-mean-square error.
+@param ninliers Final number of inliers.
+ */
 @Namespace("cv::videostab") public static native @ByVal Mat estimateGlobalMotionRansac(
         @ByVal Mat points0, @ByVal Mat points1, int model/*=MM_AFFINE*/,
         @Const @ByRef RansacParams params/*=RansacParams::default2dMotion(MM_AFFINE)*/,
@@ -733,6 +819,8 @@ public static final int
         @Const @ByRef RansacParams params/*=RansacParams::default2dMotion(MM_AFFINE)*/,
         float[] rmse/*=0*/, int[] ninliers/*=0*/);
 
+/** @brief Base class for all global motion estimation methods.
+ */
 @Namespace("cv::videostab") @NoOffset public static class MotionEstimatorBase extends Pointer {
     static { Loader.load(); }
     /** Empty constructor. */
@@ -741,13 +829,30 @@ public static final int
     public MotionEstimatorBase(Pointer p) { super(p); }
 
 
+    /** @brief Sets motion model.
+
+    @param val Motion model. See cv::videostab::MotionModel.
+     */
     public native void setMotionModel(@Cast("cv::videostab::MotionModel") int val);
+
+    /**
+    @return Motion model. See cv::videostab::MotionModel.
+    */
     public native @Cast("cv::videostab::MotionModel") int motionModel();
 
+    /** @brief Estimates global motion between two 2D point clouds.
+
+    @param points0 Source set of 2D points (32F).
+    @param points1 Destination set of 2D points (32F).
+    @param ok Indicates whether motion was estimated successfully.
+    @return 3x3 2D transformation matrix (32F).
+     */
     public native @ByVal Mat estimate(@ByVal Mat points0, @ByVal Mat points1, @Cast("bool*") BoolPointer ok/*=0*/);
     public native @ByVal Mat estimate(@ByVal Mat points0, @ByVal Mat points1);
 }
 
+/** @brief Describes a robust RANSAC-based global 2D motion estimation method which minimizes L2 error.
+ */
 @Namespace("cv::videostab") @NoOffset public static class MotionEstimatorRansacL2 extends MotionEstimatorBase {
     static { Loader.load(); }
     /** Pointer cast constructor. Invokes {@link Pointer#Pointer(Pointer)}. */
@@ -768,6 +873,10 @@ public static final int
     public native @ByVal Mat estimate(@ByVal Mat points0, @ByVal Mat points1);
 }
 
+/** @brief Describes a global 2D motion estimation method which minimizes L1 error.
+
+@note To be able to use this method you must build OpenCV with CLP library support. :
+ */
 @Namespace("cv::videostab") @NoOffset public static class MotionEstimatorL1 extends MotionEstimatorBase {
     static { Loader.load(); }
     /** Pointer cast constructor. Invokes {@link Pointer#Pointer(Pointer)}. */
@@ -782,6 +891,8 @@ public static final int
     public native @ByVal Mat estimate(@ByVal Mat points0, @ByVal Mat points1);
 }
 
+/** @brief Base class for global 2D motion estimation methods which take frames as input.
+ */
 @Namespace("cv::videostab") @NoOffset public static class ImageMotionEstimatorBase extends Pointer {
     static { Loader.load(); }
     /** Empty constructor. */
@@ -832,6 +943,9 @@ public static final int
     public native @ByVal Mat estimate(@Const @ByRef Mat frame0, @Const @ByRef Mat frame1);
 }
 
+/** @brief Describes a global 2D motion estimation method which uses keypoints detection and optical flow for
+matching.
+ */
 @Namespace("cv::videostab") @NoOffset public static class KeypointBasedMotionEstimator extends ImageMotionEstimatorBase {
     static { Loader.load(); }
     /** Empty constructor. */
@@ -858,11 +972,20 @@ public static final int
     public native @ByVal Mat estimate(@Const @ByRef Mat frame0, @Const @ByRef Mat frame1);
 }
 
-// #if defined(HAVE_OPENCV_CUDAIMGPROC) && defined(HAVE_OPENCV_CUDA) && defined(HAVE_OPENCV_CUDAOPTFLOW)
+// #if defined(HAVE_OPENCV_CUDAIMGPROC) && defined(HAVE_OPENCV_CUDAOPTFLOW)
 
-// #endif // defined(HAVE_OPENCV_CUDAIMGPROC) && defined(HAVE_OPENCV_CUDA) && defined(HAVE_OPENCV_CUDAOPTFLOW)
+// #endif // defined(HAVE_OPENCV_CUDAIMGPROC) && defined(HAVE_OPENCV_CUDAOPTFLOW)
 
+/** @brief Computes motion between two frames assuming that all the intermediate motions are known.
+
+@param from Source frame index.
+@param to Destination frame index.
+@param motions Pair-wise motions. motions[i] denotes motion from the frame i to the frame i+1
+@return Motion from the frame from to the frame to.
+ */
 @Namespace("cv::videostab") public static native @ByVal Mat getMotion(int from, int to, @Const @ByRef MatVector motions);
+
+/** @} */
 
  // namespace videostab
  // namespace cv
@@ -922,6 +1045,9 @@ public static final int
 // #include "opencv2/core.hpp"
 // #include "opencv2/videostab/global_motion.hpp"
 
+/** @addtogroup videostab_motion
+ *  @{ */
+
 @Namespace("cv::videostab") public static class IMotionStabilizer extends Pointer {
     static { Loader.load(); }
     /** Empty constructor. */
@@ -930,7 +1056,7 @@ public static final int
     public IMotionStabilizer(Pointer p) { super(p); }
 
 
-    // assumes that [0, size-1) is in or equals to [range.first, range.second)
+    /** assumes that [0, size-1) is in or equals to [range.first, range.second) */
     public native void stabilize(
                 int size, @Const @ByRef MatVector motions, @ByVal IntIntPair range,
                 Mat stabilizationMotions);
@@ -1041,6 +1167,8 @@ public static final int
 
 @Namespace("cv::videostab") public static native float estimateOptimalTrimRatio(@Const @ByRef Mat M, @ByVal Size size);
 
+/** @} */
+
  // namespace videostab
  // namespace
 
@@ -1100,6 +1228,9 @@ public static final int
 // #include "opencv2/videostab/fast_marching.hpp"
 // #include "opencv2/videostab/global_motion.hpp"
 // #include "opencv2/photo.hpp"
+
+/** @addtogroup videostab
+ *  @{ */
 
 @Namespace("cv::videostab") @NoOffset public static class InpainterBase extends Pointer {
     static { Loader.load(); }
@@ -1272,6 +1403,8 @@ public static final int
         @Const @ByRef Mat flowMask, @Const @ByRef Mat flowX, @Const @ByRef Mat flowY, @Const @ByRef Mat frame1, @Const @ByRef Mat mask1,
         float distThresh, @ByRef Mat frame0, @ByRef Mat mask0);
 
+/** @} */
+
  // namespace videostab
  // namespace cv
 
@@ -1327,6 +1460,9 @@ public static final int
 
 // #include <vector>
 // #include "opencv2/core.hpp"
+
+/** @addtogroup videostab
+ *  @{ */
 
 @Namespace("cv::videostab") public static native float calcBlurriness(@Const @ByRef Mat frame);
 
@@ -1395,6 +1531,8 @@ public static final int
     public native void deblur(int idx, @ByRef Mat frame);
 }
 
+/** @} */
+
  // namespace videostab
  // namespace cv
 
@@ -1453,6 +1591,9 @@ public static final int
 // #include "opencv2/core/cuda.hpp"
 // #include "opencv2/videostab/global_motion.hpp"
 // #include "opencv2/videostab/log.hpp"
+
+/** @addtogroup videostab
+ *  @{ */
 
 @Namespace("cv::videostab") @NoOffset public static class WobbleSuppressorBase extends Pointer {
     static { Loader.load(); }
@@ -1528,8 +1669,10 @@ public static final int
     public native void suppress(int idx, @Const @ByRef Mat frame, @ByRef Mat result);
 }
 
-// #if defined(HAVE_OPENCV_CUDA) && defined(HAVE_OPENCV_CUDAWARPING)
+// #if defined(HAVE_OPENCV_CUDAWARPING)
 // #endif
+
+/** @} */
 
  // namespace videostab
  // namespace cv
@@ -1595,6 +1738,9 @@ public static final int
 // #include "opencv2/videostab/inpainting.hpp"
 // #include "opencv2/videostab/deblurring.hpp"
 // #include "opencv2/videostab/wobble_suppression.hpp"
+
+/** @addtogroup videostab
+ *  @{ */
 
 @Namespace("cv::videostab") @NoOffset public static class StabilizerBase extends Pointer {
     static { Loader.load(); }
@@ -1684,6 +1830,8 @@ public static final int
     public native @ByVal Mat nextFrame();
 }
 
+/** @} */
+
  // namespace videostab
  // namespace cv
 
@@ -1740,6 +1888,11 @@ public static final int
 // #include <vector>
 // #include "opencv2/imgproc.hpp"
 
+/** @addtogroup videostab
+ *  @{ */
+
+/** @} */
+
  // namespace videostab
  // namespace cv
 
@@ -1790,14 +1943,40 @@ public static final int
 //
 //M*/
 
-// REFERENCES
-// 1. "Full-Frame Video Stabilization with Motion Inpainting"
-//     Yasuyuki Matsushita, Eyal Ofek, Weina Ge, Xiaoou Tang, Senior Member, and Heung-Yeung Shum
-// 2. "Auto-Directed Video Stabilization with Robust L1 Optimal Camera Paths"
-//     Matthias Grundmann, Vivek Kwatra, Irfan Essa
-
 // #ifndef __OPENCV_VIDEOSTAB_HPP__
 // #define __OPENCV_VIDEOSTAB_HPP__
+
+/**
+  @defgroup videostab Video Stabilization
+
+The video stabilization module contains a set of functions and classes that can be used to solve the
+problem of video stabilization. There are a few methods implemented, most of them are descibed in
+the papers @cite OF06 and @cite G11 . However, there are some extensions and deviations from the orginal
+paper methods.
+
+### References
+
+ 1. "Full-Frame Video Stabilization with Motion Inpainting"
+     Yasuyuki Matsushita, Eyal Ofek, Weina Ge, Xiaoou Tang, Senior Member, and Heung-Yeung Shum
+ 2. "Auto-Directed Video Stabilization with Robust L1 Optimal Camera Paths"
+     Matthias Grundmann, Vivek Kwatra, Irfan Essa
+
+     @{
+         @defgroup videostab_motion Global Motion Estimation
+
+The video stabilization module contains a set of functions and classes for global motion estimation
+between point clouds or between images. In the last case features are extracted and matched
+internally. For the sake of convenience the motion estimation functions are wrapped into classes.
+Both the functions and the classes are available.
+
+         @defgroup videostab_marching Fast Marching Method
+
+The Fast Marching Method @cite Telea04 is used in of the video stabilization routines to do motion and
+color inpainting. The method is implemented is a flexible way and it's made public for other users.
+
+     @}
+
+*/
 
 // #include "opencv2/videostab/stabilizer.hpp"
 // #include "opencv2/videostab/ring_buffer.hpp"

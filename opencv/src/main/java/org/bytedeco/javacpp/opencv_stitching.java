@@ -74,6 +74,11 @@ public class opencv_stitching extends org.bytedeco.javacpp.presets.opencv_stitch
 // #include "opencv2/imgproc.hpp"
 // #include "opencv2/opencv_modules.hpp"
 
+/** @addtogroup stitching_warp
+ *  @{
+
+/** @brief Rotation-only model image warper interface.
+ */
 @Namespace("cv::detail") public static class RotationWarper extends Pointer {
     static { Loader.load(); }
     /** Empty constructor. */
@@ -82,23 +87,66 @@ public class opencv_stitching extends org.bytedeco.javacpp.presets.opencv_stitch
     public RotationWarper(Pointer p) { super(p); }
 
 
+    /** @brief Projects the image point.
+
+    @param pt Source point
+    @param K Camera intrinsic parameters
+    @param R Camera rotation matrix
+    @return Projected point
+     */
     public native @ByVal Point2f warpPoint(@Const @ByRef Point2f pt, @ByVal MatVector K, @ByVal MatVector R);
 
+    /** @brief Builds the projection maps according to the given camera data.
+
+    @param src_size Source image size
+    @param K Camera intrinsic parameters
+    @param R Camera rotation matrix
+    @param xmap Projection map for the x axis
+    @param ymap Projection map for the y axis
+    @return Projected image minimum bounding box
+     */
     public native @ByVal Rect buildMaps(@ByVal Size src_size, @ByVal MatVector K, @ByVal MatVector R, @ByVal Mat xmap, @ByVal Mat ymap);
 
+    /** @brief Projects the image.
+
+    @param src Source image
+    @param K Camera intrinsic parameters
+    @param R Camera rotation matrix
+    @param interp_mode Interpolation mode
+    @param border_mode Border extrapolation mode
+    @param dst Projected image
+    @return Project image top-left corner
+     */
     public native @ByVal Point warp(@ByVal MatVector src, @ByVal MatVector K, @ByVal MatVector R, int interp_mode, int border_mode,
                            @ByVal Mat dst);
 
+    /** @brief Projects the image backward.
+
+    @param src Projected image
+    @param K Camera intrinsic parameters
+    @param R Camera rotation matrix
+    @param interp_mode Interpolation mode
+    @param border_mode Border extrapolation mode
+    @param dst_size Backward-projected image size
+    @param dst Backward-projected image
+     */
     public native void warpBackward(@ByVal MatVector src, @ByVal MatVector K, @ByVal MatVector R, int interp_mode, int border_mode,
                                   @ByVal Size dst_size, @ByVal Mat dst);
 
+    /**
+    @param src_size Source image bounding box
+    @param K Camera intrinsic parameters
+    @param R Camera rotation matrix
+    @return Projected image minimum bounding box
+     */
     public native @ByVal Rect warpRoi(@ByVal Size src_size, @ByVal MatVector K, @ByVal MatVector R);
 
     public native float getScale();
     public native void setScale(float arg0);
 }
 
-
+/** @brief Base class for warping logic implementation.
+ */
 @Namespace("cv::detail") public static class ProjectorBase extends Pointer {
     static { Loader.load(); }
     /** Default native constructor. */
@@ -131,6 +179,9 @@ public class opencv_stitching extends org.bytedeco.javacpp.presets.opencv_stitch
     @MemberGetter public native FloatPointer t();
 }
 
+/** @brief Base class for rotation-based warper using a detail::ProjectorBase_ derived class.
+ */
+
 
 @Namespace("cv::detail") public static class PlaneProjector extends Pointer {
     static { Loader.load(); }
@@ -154,7 +205,8 @@ public class opencv_stitching extends org.bytedeco.javacpp.presets.opencv_stitch
     public native void mapBackward(float u, float v, @ByRef float[] x, @ByRef float[] y);
 }
 
-
+/** @brief Warper that maps an image onto the z = 1 plane.
+ */
 @Name("cv::detail::PlaneWarper") public static class DetailPlaneWarper extends RotationWarper {
     static { Loader.load(); }
     /** Pointer cast constructor. Invokes {@link Pointer#Pointer(Pointer)}. */
@@ -166,19 +218,27 @@ public class opencv_stitching extends org.bytedeco.javacpp.presets.opencv_stitch
         return (DetailPlaneWarper)super.position(position);
     }
 
+    /** @brief Construct an instance of the plane warper class.
+
+    @param scale Projected image scale multiplier
+     */
     public DetailPlaneWarper(float scale/*=1.f*/) { allocate(scale); }
     private native void allocate(float scale/*=1.f*/);
     public DetailPlaneWarper() { allocate(); }
     private native void allocate();
 
+    public native @ByVal Point2f warpPoint(@Const @ByRef Point2f pt, @ByVal MatVector K, @ByVal MatVector R);
     public native @ByVal Point2f warpPoint(@Const @ByRef Point2f pt, @ByVal MatVector K, @ByVal MatVector R, @ByVal MatVector T);
 
     public native @ByVal Rect buildMaps(@ByVal Size src_size, @ByVal MatVector K, @ByVal MatVector R, @ByVal MatVector T, @ByVal Mat xmap, @ByVal Mat ymap);
     public native @ByVal Rect buildMaps(@ByVal Size src_size, @ByVal MatVector K, @ByVal MatVector R, @ByVal Mat xmap, @ByVal Mat ymap);
 
+    public native @ByVal Point warp(@ByVal MatVector src, @ByVal MatVector K, @ByVal MatVector R,
+                   int interp_mode, int border_mode, @ByVal Mat dst);
     public native @ByVal Point warp(@ByVal MatVector src, @ByVal MatVector K, @ByVal MatVector R, @ByVal MatVector T, int interp_mode, int border_mode,
                    @ByVal Mat dst);
 
+    public native @ByVal Rect warpRoi(@ByVal Size src_size, @ByVal MatVector K, @ByVal MatVector R);
     public native @ByVal Rect warpRoi(@ByVal Size src_size, @ByVal MatVector K, @ByVal MatVector R, @ByVal MatVector T);
 }
 
@@ -206,8 +266,11 @@ public class opencv_stitching extends org.bytedeco.javacpp.presets.opencv_stitch
 }
 
 
-// Projects image onto unit sphere with origin at (0, 0, 0).
-// Poles are located at (0, -1, 0) and (0, 1, 0) points.
+/** @brief Warper that maps an image onto the unit sphere located at the origin.
+
+ Projects image onto unit sphere with origin at (0, 0, 0).
+ Poles are located at (0, -1, 0) and (0, 1, 0) points.
+*/
 @Name("cv::detail::SphericalWarper") public static class DetailSphericalWarper extends RotationWarper {
     static { Loader.load(); }
     /** Empty constructor. */
@@ -215,6 +278,10 @@ public class opencv_stitching extends org.bytedeco.javacpp.presets.opencv_stitch
     /** Pointer cast constructor. Invokes {@link Pointer#Pointer(Pointer)}. */
     public DetailSphericalWarper(Pointer p) { super(p); }
 
+    /** @brief Construct an instance of the spherical warper class.
+
+    @param scale Projected image scale multiplier
+     */
     public DetailSphericalWarper(float scale) { allocate(scale); }
     private native void allocate(float scale);
 
@@ -246,7 +313,8 @@ public class opencv_stitching extends org.bytedeco.javacpp.presets.opencv_stitch
 }
 
 
-// Projects image onto x * x + z * z = 1 cylinder
+/** @brief Warper that maps an image onto the x\*x + z\*z = 1 cylinder.
+ */
 @Name("cv::detail::CylindricalWarper") public static class DetailCylindricalWarper extends RotationWarper {
     static { Loader.load(); }
     /** Empty constructor. */
@@ -254,6 +322,10 @@ public class opencv_stitching extends org.bytedeco.javacpp.presets.opencv_stitch
     /** Pointer cast constructor. Invokes {@link Pointer#Pointer(Pointer)}. */
     public DetailCylindricalWarper(Pointer p) { super(p); }
 
+    /** @brief Construct an instance of the cylindrical warper class.
+
+    @param scale Projected image scale multiplier
+     */
     public DetailCylindricalWarper(float scale) { allocate(scale); }
     private native void allocate(float scale);
 
@@ -563,8 +635,86 @@ public class opencv_stitching extends org.bytedeco.javacpp.presets.opencv_stitch
 }
 
 
-// #ifdef HAVE_OPENCV_CUDAWARPING
-// #endif
+@Name("cv::detail::PlaneWarperGpu") @NoOffset public static class DetailPlaneWarperGpu extends RotationWarper {
+    static { Loader.load(); }
+    /** Pointer cast constructor. Invokes {@link Pointer#Pointer(Pointer)}. */
+    public DetailPlaneWarperGpu(Pointer p) { super(p); }
+    /** Native array allocator. Access with {@link Pointer#position(int)}. */
+    public DetailPlaneWarperGpu(int size) { allocateArray(size); }
+    private native void allocateArray(int size);
+    @Override public DetailPlaneWarperGpu position(int position) {
+        return (DetailPlaneWarperGpu)super.position(position);
+    }
+
+    public DetailPlaneWarperGpu(float scale/*=1.f*/) { allocate(scale); }
+    private native void allocate(float scale/*=1.f*/);
+    public DetailPlaneWarperGpu() { allocate(); }
+    private native void allocate();
+
+    public native @ByVal Rect buildMaps(@ByVal Size src_size, @ByVal MatVector K, @ByVal MatVector R, @ByVal Mat xmap, @ByVal Mat ymap);
+
+    public native @ByVal Rect buildMaps(@ByVal Size src_size, @ByVal MatVector K, @ByVal MatVector R, @ByVal MatVector T, @ByVal Mat xmap, @ByVal Mat ymap);
+
+    public native @ByVal Point warp(@ByVal MatVector src, @ByVal MatVector K, @ByVal MatVector R, int interp_mode, int border_mode,
+                   @ByVal Mat dst);
+
+    public native @ByVal Point warp(@ByVal MatVector src, @ByVal MatVector K, @ByVal MatVector R, @ByVal MatVector T, int interp_mode, int border_mode,
+                   @ByVal Mat dst);
+
+    public native @ByVal Rect buildMaps(@ByVal Size src_size, @ByVal MatVector K, @ByVal MatVector R, @ByRef GpuMat xmap, @ByRef GpuMat ymap);
+
+    public native @ByVal Rect buildMaps(@ByVal Size src_size, @ByVal MatVector K, @ByVal MatVector R, @ByVal MatVector T, @ByRef GpuMat xmap, @ByRef GpuMat ymap);
+
+    public native @ByVal Point warp(@Const @ByRef GpuMat src, @ByVal MatVector K, @ByVal MatVector R, int interp_mode, int border_mode,
+                   @ByRef GpuMat dst);
+
+    public native @ByVal Point warp(@Const @ByRef GpuMat src, @ByVal MatVector K, @ByVal MatVector R, @ByVal MatVector T, int interp_mode, int border_mode,
+                   @ByRef GpuMat dst);
+}
+
+
+@Name("cv::detail::SphericalWarperGpu") @NoOffset public static class DetailSphericalWarperGpu extends RotationWarper {
+    static { Loader.load(); }
+    /** Empty constructor. */
+    public DetailSphericalWarperGpu() { }
+    /** Pointer cast constructor. Invokes {@link Pointer#Pointer(Pointer)}. */
+    public DetailSphericalWarperGpu(Pointer p) { super(p); }
+
+    public DetailSphericalWarperGpu(float scale) { allocate(scale); }
+    private native void allocate(float scale);
+
+    public native @ByVal Rect buildMaps(@ByVal Size src_size, @ByVal MatVector K, @ByVal MatVector R, @ByVal Mat xmap, @ByVal Mat ymap);
+
+    public native @ByVal Point warp(@ByVal MatVector src, @ByVal MatVector K, @ByVal MatVector R, int interp_mode, int border_mode,
+                   @ByVal Mat dst);
+
+    public native @ByVal Rect buildMaps(@ByVal Size src_size, @ByVal MatVector K, @ByVal MatVector R, @ByRef GpuMat xmap, @ByRef GpuMat ymap);
+
+    public native @ByVal Point warp(@Const @ByRef GpuMat src, @ByVal MatVector K, @ByVal MatVector R, int interp_mode, int border_mode,
+                   @ByRef GpuMat dst);
+}
+
+
+@Name("cv::detail::CylindricalWarperGpu") @NoOffset public static class DetailCylindricalWarperGpu extends RotationWarper {
+    static { Loader.load(); }
+    /** Empty constructor. */
+    public DetailCylindricalWarperGpu() { }
+    /** Pointer cast constructor. Invokes {@link Pointer#Pointer(Pointer)}. */
+    public DetailCylindricalWarperGpu(Pointer p) { super(p); }
+
+    public DetailCylindricalWarperGpu(float scale) { allocate(scale); }
+    private native void allocate(float scale);
+
+    public native @ByVal Rect buildMaps(@ByVal Size src_size, @ByVal MatVector K, @ByVal MatVector R, @ByVal Mat xmap, @ByVal Mat ymap);
+
+    public native @ByVal Point warp(@ByVal MatVector src, @ByVal MatVector K, @ByVal MatVector R, int interp_mode, int border_mode,
+                   @ByVal Mat dst);
+
+    public native @ByVal Rect buildMaps(@ByVal Size src_size, @ByVal MatVector K, @ByVal MatVector R, @ByRef GpuMat xmap, @ByRef GpuMat ymap);
+
+    public native @ByVal Point warp(@Const @ByRef GpuMat src, @ByVal MatVector K, @ByVal MatVector R, int interp_mode, int border_mode,
+                   @ByRef GpuMat dst);
+}
 
 
 @Namespace("cv::detail") public static class SphericalPortraitProjector extends Pointer {
@@ -671,6 +821,8 @@ public class opencv_stitching extends org.bytedeco.javacpp.presets.opencv_stitch
     private native void allocate(float scale);
 }
 
+/** @} stitching_warp */
+
  // namespace detail
  // namespace cv
 
@@ -734,6 +886,10 @@ public class opencv_stitching extends org.bytedeco.javacpp.presets.opencv_stitch
 // #ifdef HAVE_OPENCV_XFEATURES2D
 // #endif
 
+/** @addtogroup stitching_match
+ *  @{
+
+/** @brief Structure containing image keypoints and descriptors. */
 @Namespace("cv::detail") public static class ImageFeatures extends Pointer {
     static { Loader.load(); }
     /** Default native constructor. */
@@ -754,7 +910,7 @@ public class opencv_stitching extends org.bytedeco.javacpp.presets.opencv_stitch
     public native @ByRef UMat descriptors(); public native ImageFeatures descriptors(UMat descriptors);
 }
 
-
+/** @brief Feature finders base class */
 @Namespace("cv::detail") public static class FeaturesFinder extends Pointer {
     static { Loader.load(); }
     /** Empty constructor. */
@@ -762,12 +918,25 @@ public class opencv_stitching extends org.bytedeco.javacpp.presets.opencv_stitch
     /** Pointer cast constructor. Invokes {@link Pointer#Pointer(Pointer)}. */
     public FeaturesFinder(Pointer p) { super(p); }
 
+    /** @overload */
     public native @Name("operator()") void apply(@ByVal MatVector image, @ByRef ImageFeatures features);
+    /** @brief Finds features in the given image.
+
+    @param image Source image
+    @param features Found features
+    @param rois Regions of interest
+
+    @sa detail::ImageFeatures, Rect_
+    */
     public native @Name("operator()") void apply(@ByVal MatVector image, @ByRef ImageFeatures features, @StdVector Rect rois);
+    /** @brief Frees unused memory allocated before if there is any. */
     public native void collectGarbage();
 }
 
+/** @brief SURF features finder.
 
+@sa detail::FeaturesFinder, SURF
+*/
 @Namespace("cv::detail") @NoOffset public static class SurfFeaturesFinder extends FeaturesFinder {
     static { Loader.load(); }
     /** Pointer cast constructor. Invokes {@link Pointer#Pointer(Pointer)}. */
@@ -787,6 +956,10 @@ public class opencv_stitching extends org.bytedeco.javacpp.presets.opencv_stitch
     private native void allocate();
 }
 
+/** @brief ORB features finder. :
+
+@sa detail::FeaturesFinder, ORB
+*/
 @Namespace("cv::detail") @NoOffset public static class OrbFeaturesFinder extends FeaturesFinder {
     static { Loader.load(); }
     /** Pointer cast constructor. Invokes {@link Pointer#Pointer(Pointer)}. */
@@ -808,7 +981,10 @@ public class opencv_stitching extends org.bytedeco.javacpp.presets.opencv_stitch
 // #ifdef HAVE_OPENCV_XFEATURES2D
 // #endif
 
+/** @brief Structure containing information about matches between two images.
 
+It's assumed that there is a homography between those images.
+*/
 @Namespace("cv::detail") @NoOffset public static class MatchesInfo extends Pointer {
     static { Loader.load(); }
     /** Pointer cast constructor. Invokes {@link Pointer#Pointer(Pointer)}. */
@@ -826,16 +1002,21 @@ public class opencv_stitching extends org.bytedeco.javacpp.presets.opencv_stitch
     private native void allocate(@Const @ByRef MatchesInfo other);
     public native @Const @ByRef @Name("operator=") MatchesInfo put(@Const @ByRef MatchesInfo other);
 
+    /** Images indices (optional) */
     public native int src_img_idx(); public native MatchesInfo src_img_idx(int src_img_idx);
-    public native int dst_img_idx(); public native MatchesInfo dst_img_idx(int dst_img_idx);       // Images indices (optional)
+    public native int dst_img_idx(); public native MatchesInfo dst_img_idx(int dst_img_idx);
     public native @StdVector DMatch matches(); public native MatchesInfo matches(DMatch matches);
-    public native @Cast("uchar*") @StdVector BytePointer inliers_mask(); public native MatchesInfo inliers_mask(BytePointer inliers_mask);    // Geometrically consistent matches mask
-    public native int num_inliers(); public native MatchesInfo num_inliers(int num_inliers);                    // Number of geometrically consistent matches
-    public native @ByRef Mat H(); public native MatchesInfo H(Mat H);                              // Estimated homography
-    public native double confidence(); public native MatchesInfo confidence(double confidence);                  // Confidence two images are from the same panorama
+    /** Geometrically consistent matches mask */
+    public native @Cast("uchar*") @StdVector BytePointer inliers_mask(); public native MatchesInfo inliers_mask(BytePointer inliers_mask);
+    /** Number of geometrically consistent matches */
+    public native int num_inliers(); public native MatchesInfo num_inliers(int num_inliers);
+    /** Estimated homography */
+    public native @ByRef Mat H(); public native MatchesInfo H(Mat H);
+    /** Confidence two images are from the same panorama */
+    public native double confidence(); public native MatchesInfo confidence(double confidence);
 }
 
-
+/** @brief Feature matchers base class. */
 @Namespace("cv::detail") @NoOffset public static class FeaturesMatcher extends Pointer {
     static { Loader.load(); }
     /** Empty constructor. */
@@ -844,19 +1025,42 @@ public class opencv_stitching extends org.bytedeco.javacpp.presets.opencv_stitch
     public FeaturesMatcher(Pointer p) { super(p); }
 
 
+    /** @overload
+    @param features1 First image features
+    @param features2 Second image features
+    @param matches_info Found matches
+    */
     public native @Name("operator()") void apply(@Const @ByRef ImageFeatures features1, @Const @ByRef ImageFeatures features2,
                          @ByRef MatchesInfo matches_info);
 
+    /** @brief Performs images matching.
+
+    @param features Features of the source images
+    @param pairwise_matches Found pairwise matches
+    @param mask Mask indicating which image pairs must be matched
+
+    The function is parallelized with the TBB library.
+
+    @sa detail::MatchesInfo
+    */
     public native @Name("operator()") void apply(@StdVector ImageFeatures features, @StdVector MatchesInfo pairwise_matches,
                          @Const @ByRef UMat mask/*=cv::UMat()*/);
     public native @Name("operator()") void apply(@StdVector ImageFeatures features, @StdVector MatchesInfo pairwise_matches);
 
+    /** @return True, if it's possible to use the same matcher instance in parallel, false otherwise
+    */
     public native @Cast("bool") boolean isThreadSafe();
 
+    /** @brief Frees unused memory allocated before if there is any.
+    */
     public native void collectGarbage();
 }
 
+/** @brief Features matcher which finds two best matches for each feature and leaves the best one only if the
+ratio between descriptor distances is greater than the threshold match_conf
 
+@sa detail::FeaturesMatcher
+ */
 @Namespace("cv::detail") @NoOffset public static class BestOf2NearestMatcher extends FeaturesMatcher {
     static { Loader.load(); }
     /** Pointer cast constructor. Invokes {@link Pointer#Pointer(Pointer)}. */
@@ -868,6 +1072,15 @@ public class opencv_stitching extends org.bytedeco.javacpp.presets.opencv_stitch
         return (BestOf2NearestMatcher)super.position(position);
     }
 
+    /** @brief Constructs a "best of 2 nearest" matcher.
+
+    @param try_use_gpu Should try to use GPU or not
+    @param match_conf Match distances ration threshold
+    @param num_matches_thresh1 Minimum number of matches required for the 2D projective transform
+    estimation used in the inliers classification step
+    @param num_matches_thresh2 Minimum number of matches required for the 2D projective transform
+    re-estimation on inliers
+     */
     public BestOf2NearestMatcher(@Cast("bool") boolean try_use_gpu/*=false*/, float match_conf/*=0.3f*/, int num_matches_thresh1/*=6*/,
                               int num_matches_thresh2/*=6*/) { allocate(try_use_gpu, match_conf, num_matches_thresh1, num_matches_thresh2); }
     private native void allocate(@Cast("bool") boolean try_use_gpu/*=false*/, float match_conf/*=0.3f*/, int num_matches_thresh1/*=6*/,
@@ -900,6 +1113,8 @@ public class opencv_stitching extends org.bytedeco.javacpp.presets.opencv_stitch
                          @Const @ByRef UMat mask/*=cv::UMat()*/);
     public native @Name("operator()") void apply(@StdVector ImageFeatures features, @StdVector MatchesInfo pairwise_matches);
 }
+
+/** @} stitching_match */
 
  // namespace detail
  // namespace cv
@@ -1007,6 +1222,9 @@ public static final int ENABLE_LOG = 0;
 //  #define LOGLN_CHAT(msg) do{}while(0)
 //#endif
 
+/** @addtogroup stitching
+ *  @{ */
+
 @Namespace("cv::detail") @NoOffset public static class DisjointSets extends Pointer {
     static { Loader.load(); }
     /** Pointer cast constructor. Invokes {@link Pointer#Pointer(Pointer)}. */
@@ -1077,6 +1295,8 @@ public static final int ENABLE_LOG = 0;
 
 @Namespace("cv::detail") public static native @ByRef IntPointer stitchingLogLevel();
 
+/** @} */
+
  // namespace detail
  // namespace cv
 
@@ -1134,6 +1354,13 @@ public static final int ENABLE_LOG = 0;
 
 // #include "opencv2/core.hpp"
 
+/** @addtogroup stitching
+ *  @{
+
+/** @brief Describes camera parameters.
+
+@note Translation is assumed to be zero during the whole stitching pipeline. :
+ */
 @Namespace("cv::detail") @NoOffset public static class CameraParams extends Pointer {
     static { Loader.load(); }
     /** Pointer cast constructor. Invokes {@link Pointer#Pointer(Pointer)}. */
@@ -1159,6 +1386,8 @@ public static final int ENABLE_LOG = 0;
     public native @ByRef Mat R(); public native CameraParams R(Mat R); // Rotation
     public native @ByRef Mat t(); public native CameraParams t(Mat t); // Translation
 }
+
+/** @} */
 
  // namespace detail
  // namespace cv
@@ -1218,6 +1447,17 @@ public static final int ENABLE_LOG = 0;
 // #include "util.hpp"
 // #include "camera.hpp"
 
+/** @addtogroup stitching_rotation
+ *  @{
+
+/** @brief Rotation estimator base class.
+
+It takes features of all images, pairwise matches between all images and estimates rotations of all
+cameras.
+
+@note The coordinate system origin is implementation-dependent, but you can always normalize the
+rotations in respect to the first camera, for instance. :
+ */
 @Namespace("cv::detail") public static class Estimator extends Pointer {
     static { Loader.load(); }
     /** Empty constructor. */
@@ -1226,12 +1466,20 @@ public static final int ENABLE_LOG = 0;
     public Estimator(Pointer p) { super(p); }
 
 
+    /** @brief Estimates camera parameters.
+
+    @param features Features of images
+    @param pairwise_matches Pairwise matches of images
+    @param cameras Estimated camera parameters
+    @return True in case of success, false otherwise
+     */
     public native @Cast("bool") @Name("operator()") boolean apply(@StdVector ImageFeatures features,
                          @StdVector MatchesInfo pairwise_matches,
                          @StdVector CameraParams cameras);
 }
 
-
+/** @brief Homography based rotation estimator.
+ */
 @Namespace("cv::detail") @NoOffset public static class HomographyBasedEstimator extends Estimator {
     static { Loader.load(); }
     /** Pointer cast constructor. Invokes {@link Pointer#Pointer(Pointer)}. */
@@ -1249,7 +1497,8 @@ public static final int ENABLE_LOG = 0;
     private native void allocate();
 }
 
-
+/** @brief Base class for all camera parameters refinement methods.
+ */
 @Namespace("cv::detail") @NoOffset public static class BundleAdjusterBase extends Estimator {
     static { Loader.load(); }
     /** Empty constructor. */
@@ -1268,9 +1517,12 @@ public static final int ENABLE_LOG = 0;
 }
 
 
-// Minimizes reprojection error.
-// It can estimate focal length, aspect ratio, principal point.
-// You can affect only on them via the refinement mask.
+/** @brief Implementation of the camera parameters refinement algorithm which minimizes sum of the reprojection
+error squares
+
+It can estimate focal length, aspect ratio, principal point.
+You can affect only on them via the refinement mask.
+ */
 @Namespace("cv::detail") @NoOffset public static class BundleAdjusterReproj extends BundleAdjusterBase {
     static { Loader.load(); }
     /** Pointer cast constructor. Invokes {@link Pointer#Pointer(Pointer)}. */
@@ -1287,8 +1539,11 @@ public static final int ENABLE_LOG = 0;
 }
 
 
-// Minimizes sun of ray-to-ray distances.
-// It can estimate focal length. It ignores the refinement mask for now.
+/** @brief Implementation of the camera parameters refinement algorithm which minimizes sum of the distances
+between the rays passing through the camera center and a feature. :
+
+It can estimate focal length. It ignores the refinement mask for now.
+ */
 @Namespace("cv::detail") @NoOffset public static class BundleAdjusterRay extends BundleAdjusterBase {
     static { Loader.load(); }
     /** Pointer cast constructor. Invokes {@link Pointer#Pointer(Pointer)}. */
@@ -1310,6 +1565,11 @@ public static final int
     WAVE_CORRECT_HORIZ = 0,
     WAVE_CORRECT_VERT = 1;
 
+/** @brief Tries to make panorama more horizontal (or vertical).
+
+@param rmats Camera rotation matrices.
+@param kind Correction kind, see detail::WaveCorrectKind.
+ */
 @Namespace("cv::detail") public static native void waveCorrect(@ByRef MatVector rmats, @Cast("cv::detail::WaveCorrectKind") int kind);
 
 
@@ -1334,6 +1594,8 @@ public static final int
 @Namespace("cv::detail") public static native void findMaxSpanningTree(
         int num_images, @StdVector MatchesInfo pairwise_matches,
         @ByRef Graph span_tree, @StdVector int[] centers);
+
+/** @} stitching_rotation */
 
  // namespace detail
  // namespace cv
@@ -1390,6 +1652,11 @@ public static final int
 
 // #include "opencv2/core.hpp"
 
+/** @addtogroup stitching_exposure
+ *  @{
+
+/** @brief Base class for all exposure compensators.
+ */
 @Namespace("cv::detail") public static class ExposureCompensator extends Pointer {
     static { Loader.load(); }
     /** Empty constructor. */
@@ -1402,14 +1669,29 @@ public static final int
     public static final int NO = 0, GAIN = 1, GAIN_BLOCKS = 2;
     public static native @Ptr ExposureCompensator createDefault(int type);
 
+    /**
+    @param corners Source image top-left corners
+    @param images Source images
+    @param masks Image masks to update (second value in pair specifies the value which should be used
+    to detect where image is)
+     */
     public native void feed(@StdVector Point corners, @StdVector UMat images,
                   @StdVector UMat masks);
+    /** @overload */
     public native void feed(@StdVector Point corners, @StdVector UMat images,
                           @Const @ByRef UMatBytePairVector masks);
+    /** @brief Compensate exposure in the specified image.
+
+    @param index Image index
+    @param corner Image top-left corner
+    @param image Image to process
+    @param mask Image mask
+     */
     public native void apply(int index, @ByVal Point corner, @ByVal Mat image, @ByVal MatVector mask);
 }
 
-
+/** @brief Stub exposure compensator which does nothing.
+ */
 @Namespace("cv::detail") public static class NoExposureCompensator extends ExposureCompensator {
     static { Loader.load(); }
     /** Default native constructor. */
@@ -1429,7 +1711,9 @@ public static final int
     public native void apply(int arg0, @ByVal Point arg1, @ByVal Mat arg2, @ByVal MatVector arg3);
 }
 
-
+/** @brief Exposure compensator which tries to remove exposure related artifacts by adjusting image
+intensities, see @cite BL07 and @cite WJ10 for details.
+ */
 @Namespace("cv::detail") public static class GainCompensator extends ExposureCompensator {
     static { Loader.load(); }
     /** Default native constructor. */
@@ -1450,7 +1734,9 @@ public static final int
     public native @StdVector DoublePointer gains();
 }
 
-
+/** @brief Exposure compensator which tries to remove exposure related artifacts by adjusting image block
+intensities, see @cite UES01 for details.
+ */
 @Namespace("cv::detail") @NoOffset public static class BlocksGainCompensator extends ExposureCompensator {
     static { Loader.load(); }
     /** Pointer cast constructor. Invokes {@link Pointer#Pointer(Pointer)}. */
@@ -1470,6 +1756,8 @@ public static final int
                   @Const @ByRef UMatBytePairVector masks);
     public native void apply(int index, @ByVal Point corner, @ByVal Mat image, @ByVal MatVector mask);
 }
+
+/** @} */
 
  // namespace detail
  // namespace cv
@@ -1528,6 +1816,11 @@ public static final int
 // #include "opencv2/core.hpp"
 // #include "opencv2/opencv_modules.hpp"
 
+/** @addtogroup stitching_seam
+ *  @{
+
+/** @brief Base class for a seam estimator.
+ */
 @Namespace("cv::detail") public static class SeamFinder extends Pointer {
     static { Loader.load(); }
     /** Empty constructor. */
@@ -1535,11 +1828,18 @@ public static final int
     /** Pointer cast constructor. Invokes {@link Pointer#Pointer(Pointer)}. */
     public SeamFinder(Pointer p) { super(p); }
 
+    /** @brief Estimates seams.
+
+    @param src Source images
+    @param corners Source image top-left corners
+    @param masks Source image masks to update
+     */
     public native void find(@StdVector UMat src, @StdVector Point corners,
                           @StdVector UMat masks);
 }
 
-
+/** @brief Stub seam estimator which does nothing.
+ */
 @Namespace("cv::detail") public static class NoSeamFinder extends SeamFinder {
     static { Loader.load(); }
     /** Default native constructor. */
@@ -1557,7 +1857,8 @@ public static final int
     public native void find(@StdVector UMat arg0, @StdVector Point arg1, @StdVector UMat arg2);
 }
 
-
+/** @brief Base class for all pairwise seam estimators.
+ */
 @Namespace("cv::detail") @NoOffset public static class PairwiseSeamFinder extends SeamFinder {
     static { Loader.load(); }
     /** Empty constructor. */
@@ -1569,7 +1870,8 @@ public static final int
                           @StdVector UMat masks);
 }
 
-
+/** @brief Voronoi diagram-based seam estimator.
+ */
 @Namespace("cv::detail") public static class VoronoiSeamFinder extends PairwiseSeamFinder {
     static { Loader.load(); }
     /** Default native constructor. */
@@ -1584,6 +1886,8 @@ public static final int
         return (VoronoiSeamFinder)super.position(position);
     }
 
+    public native void find(@StdVector UMat src, @StdVector Point corners,
+                          @StdVector UMat masks);
     public native void find(@StdVector Size size, @StdVector Point corners,
                           @StdVector UMat masks);
 }
@@ -1609,7 +1913,8 @@ public static final int
                           @StdVector UMat masks);
 }
 
-
+/** @brief Base class for all minimum graph-cut-based seam estimators.
+ */
 @Namespace("cv::detail") public static class GraphCutSeamFinderBase extends Pointer {
     static { Loader.load(); }
     /** Default native constructor. */
@@ -1628,7 +1933,8 @@ public static final int
     public static final int COST_COLOR = 0, COST_COLOR_GRAD = 1;
 }
 
-
+/** @brief Minimum graph cut-based seam estimator. See details in @cite V03 .
+ */
 @Namespace("cv::detail") @NoOffset public static class GraphCutSeamFinder extends GraphCutSeamFinderBase {
     static { Loader.load(); }
     /** Pointer cast constructor. Invokes {@link Pointer#Pointer(Pointer)}. */
@@ -1654,8 +1960,10 @@ public static final int
 }
 
 
-// #ifdef HAVE_OPENCV_CUDA
+// #ifdef HAVE_OPENCV_CUDALEGACY
 // #endif
+
+/** @} */
 
  // namespace detail
  // namespace cv
@@ -1712,8 +2020,13 @@ public static final int
 
 // #include "opencv2/core.hpp"
 
+/** @addtogroup stitching_blend
+ *  @{
 
-// Simple blender which puts one image over another
+/** @brief Base class for all blenders.
+
+Simple blender which puts one image over another
+*/
 @Namespace("cv::detail") public static class Blender extends Pointer {
     static { Loader.load(); }
     /** Default native constructor. */
@@ -1734,13 +2047,31 @@ public static final int
     public static native @Ptr Blender createDefault(int type, @Cast("bool") boolean try_gpu/*=false*/);
     public static native @Ptr Blender createDefault(int type);
 
+    /** @brief Prepares the blender for blending.
+
+    @param corners Source images top-left corners
+    @param sizes Source image sizes
+     */
     public native void prepare(@StdVector Point corners, @StdVector Size sizes);
+    /** @overload */
     public native void prepare(@ByVal Rect dst_roi);
+    /** @brief Processes the image.
+
+    @param img Source image
+    @param mask Source image mask
+    @param tl Source image top-left corners
+     */
     public native void feed(@ByVal MatVector img, @ByVal MatVector mask, @ByVal Point tl);
+    /** @brief Blends and returns the final pano.
+
+    @param dst Final pano
+    @param dst_mask Final pano mask
+     */
     public native void blend(@ByVal Mat dst, @ByVal Mat dst_mask);
 }
 
-
+/** @brief Simple blender which mixes images at its borders.
+ */
 @Namespace("cv::detail") @NoOffset public static class FeatherBlender extends Blender {
     static { Loader.load(); }
     /** Pointer cast constructor. Invokes {@link Pointer#Pointer(Pointer)}. */
@@ -1764,15 +2095,16 @@ public static final int
     public native void feed(@ByVal MatVector img, @ByVal MatVector mask, @ByVal Point tl);
     public native void blend(@ByVal Mat dst, @ByVal Mat dst_mask);
 
-    // Creates weight maps for fixed set of source images by their masks and top-left corners.
-    // Final image can be obtained by simple weighting of the source images.
+    /** Creates weight maps for fixed set of source images by their masks and top-left corners.
+     *  Final image can be obtained by simple weighting of the source images. */
     public native @ByVal Rect createWeightMaps(@StdVector UMat masks, @StdVector Point corners,
                               @StdVector UMat weight_maps);
 }
 
 
 
-
+/** @brief Blender which uses multi-band blending algorithm (see @cite BA83).
+ */
 @Namespace("cv::detail") @NoOffset public static class MultiBandBlender extends Blender {
     static { Loader.load(); }
     /** Pointer cast constructor. Invokes {@link Pointer#Pointer(Pointer)}. */
@@ -1811,6 +2143,8 @@ public static final int
 // Restores source image
 @Namespace("cv::detail") public static native void restoreImageFromLaplacePyr(@StdVector UMat pyr);
 @Namespace("cv::detail") public static native void restoreImageFromLaplacePyrGpu(@StdVector UMat pyr);
+
+/** @} */
 
  // namespace detail
  // namespace cv
@@ -1868,12 +2202,31 @@ public static final int
 // #include "opencv2/core.hpp"
 // #include "matchers.hpp"
 
-// See "Construction of Panoramic Image Mosaics with Global and Local Alignment"
-// by Heung-Yeung Shum and Richard Szeliski.
+/** @addtogroup stitching_autocalib
+ *  @{
+
+/** @brief Tries to estimate focal lengths from the given homography under the assumption that the camera
+undergoes rotations around its centre only.
+
+@param H Homography.
+@param f0 Estimated focal length along X axis.
+@param f1 Estimated focal length along Y axis.
+@param f0_ok True, if f0 was estimated successfully, false otherwise.
+@param f1_ok True, if f1 was estimated successfully, false otherwise.
+
+See "Construction of Panoramic Image Mosaics with Global and Local Alignment"
+by Heung-Yeung Shum and Richard Szeliski.
+ */
 @Namespace("cv::detail") public static native void focalsFromHomography(@Const @ByRef Mat H, @ByRef DoublePointer f0, @ByRef DoublePointer f1, @Cast("bool*") @ByRef BoolPointer f0_ok, @Cast("bool*") @ByRef BoolPointer f1_ok);
 @Namespace("cv::detail") public static native void focalsFromHomography(@Const @ByRef Mat H, @ByRef DoubleBuffer f0, @ByRef DoubleBuffer f1, @Cast("bool*") @ByRef BoolPointer f0_ok, @Cast("bool*") @ByRef BoolPointer f1_ok);
 @Namespace("cv::detail") public static native void focalsFromHomography(@Const @ByRef Mat H, @ByRef double[] f0, @ByRef double[] f1, @Cast("bool*") @ByRef BoolPointer f0_ok, @Cast("bool*") @ByRef BoolPointer f1_ok);
 
+/** @brief Estimates focal lengths for each given camera.
+
+@param features Features of images.
+@param pairwise_matches Matches between all image pairs.
+@param focals Estimated focal lengths for each camera.
+ */
 @Namespace("cv::detail") public static native void estimateFocal(@StdVector ImageFeatures features,
                               @StdVector MatchesInfo pairwise_matches,
                               @StdVector DoublePointer focals);
@@ -1885,6 +2238,8 @@ public static final int
                               @StdVector double[] focals);
 
 @Namespace("cv::detail") public static native @Cast("bool") boolean calibrateRotatingCamera(@Const @ByRef MatVector Hs, @ByRef Mat K);
+
+/** @} stitching_autocalib */
 
  // namespace detail
  // namespace cv
@@ -1942,6 +2297,9 @@ public static final int
 
 // #include "opencv2/core.hpp"
 
+/** @addtogroup stitching
+ *  @{ */
+
 //  Base Timelapser class, takes a sequence of images, applies appropriate shift, stores result in dst_.
 
 @Namespace("cv::detail") public static class Timelapser extends Pointer {
@@ -1986,6 +2344,8 @@ public static final int
 
     public native void initialize(@StdVector Point corners, @StdVector Size sizes);
 }
+
+/** @} */
 
  // namespace detail
  // namespace cv
@@ -2042,6 +2402,11 @@ public static final int
 
 // #include "opencv2/stitching/detail/warpers.hpp"
 
+/** @addtogroup stitching_warp
+ *  @{
+
+/** @brief Image warper factories base class.
+ */
 @Namespace("cv") public static class WarperCreator extends Pointer {
     static { Loader.load(); }
     /** Empty constructor. */
@@ -2052,7 +2417,9 @@ public static final int
     public native @Ptr RotationWarper create(float scale);
 }
 
-
+/** @brief Plane warper factory class.
+  @sa detail::PlaneWarper
+ */
 @Namespace("cv") public static class PlaneWarper extends WarperCreator {
     static { Loader.load(); }
     /** Default native constructor. */
@@ -2070,7 +2437,9 @@ public static final int
     public native @Ptr RotationWarper create(float scale);
 }
 
-
+/** @brief Cylindrical warper factory class.
+@sa detail::CylindricalWarper
+*/
 @Namespace("cv") public static class CylindricalWarper extends WarperCreator {
     static { Loader.load(); }
     /** Default native constructor. */
@@ -2088,7 +2457,7 @@ public static final int
     public native @Ptr RotationWarper create(float scale);
 }
 
-
+/** @brief Spherical warper factory class */
 @Namespace("cv") public static class SphericalWarper extends WarperCreator {
     static { Loader.load(); }
     /** Default native constructor. */
@@ -2251,6 +2620,8 @@ public static final int
 // #ifdef HAVE_OPENCV_CUDAWARPING
 // #endif
 
+/** @} stitching_warp */
+
  // namespace cv
 
 // #endif // __OPENCV_STITCHING_WARPER_CREATORS_HPP__
@@ -2313,6 +2684,44 @@ public static final int
 // #include "opencv2/stitching/detail/blenders.hpp"
 // #include "opencv2/stitching/detail/camera.hpp"
 
+/**
+@defgroup stitching Images stitching
+
+This figure illustrates the stitching module pipeline implemented in the Stitcher class. Using that
+class it's possible to configure/remove some steps, i.e. adjust the stitching pipeline according to
+the particular needs. All building blocks from the pipeline are available in the detail namespace,
+one can combine and use them separately.
+
+The implemented stitching pipeline is very similar to the one proposed in @cite BL07 .
+
+![image](StitchingPipeline.jpg)
+
+@{
+    @defgroup stitching_match Features Finding and Images Matching
+    @defgroup stitching_rotation Rotation Estimation
+    @defgroup stitching_autocalib Autocalibration
+    @defgroup stitching_warp Images Warping
+    @defgroup stitching_seam Seam Estimation
+    @defgroup stitching_exposure Exposure Compensation
+    @defgroup stitching_blend Image Blenders
+@}
+  */
+
+/** @addtogroup stitching
+ *  @{
+
+/** @brief High level image stitcher.
+
+It's possible to use this class without being aware of the entire stitching pipeline. However, to
+be able to achieve higher stitching stability and quality of the final images at least being
+familiar with the theory is recommended.
+
+@note
+   -   A basic example on image stitching can be found at
+        opencv_source_code/samples/cpp/stitching.cpp
+    -   A detailed example on image stitching can be found at
+        opencv_source_code/samples/cpp/stitching_detailed.cpp
+ */
 @Namespace("cv") public static class Stitcher extends Pointer {
     static { Loader.load(); }
     /** Default native constructor. */
@@ -2337,7 +2746,11 @@ public static final int
         ERR_CAMERA_PARAMS_ADJUST_FAIL = 3;
 
    // Stitcher() {}
-    // Creates stitcher with default parameters
+    /** @brief Creates a stitcher with the default parameters.
+
+    @param try_use_gpu Flag indicating whether GPU should be used whenever it's possible.
+    @return Stitcher class instance.
+     */
     public static native @ByVal Stitcher createDefault(@Cast("bool") boolean try_use_gpu/*=false*/);
     public static native @ByVal Stitcher createDefault();
 
@@ -2383,13 +2796,43 @@ public static final int
     public native @Ptr Blender blender();
     public native void setBlender(@Ptr Blender b);
 
+    /** @overload */
     public native @Cast("cv::Stitcher::Status") int estimateTransform(@ByVal MatVector images);
+    /** @brief These functions try to match the given images and to estimate rotations of each camera.
+
+    @note Use the functions only if you're aware of the stitching pipeline, otherwise use
+    Stitcher::stitch.
+
+    @param images Input images.
+    @param rois Region of interest rectangles.
+    @return Status code.
+     */
     public native @Cast("cv::Stitcher::Status") int estimateTransform(@ByVal MatVector images, @Const @ByRef RectVectorVector rois);
 
+    /** @overload */
     public native @Cast("cv::Stitcher::Status") int composePanorama(@ByVal Mat pano);
+    /** @brief These functions try to compose the given images (or images stored internally from the other function
+    calls) into the final pano under the assumption that the image transformations were estimated
+    before.
+
+    @note Use the functions only if you're aware of the stitching pipeline, otherwise use
+    Stitcher::stitch.
+
+    @param images Input images.
+    @param pano Final pano.
+    @return Status code.
+     */
     public native @Cast("cv::Stitcher::Status") int composePanorama(@ByVal MatVector images, @ByVal Mat pano);
 
+    /** @overload */
     public native @Cast("cv::Stitcher::Status") int stitch(@ByVal MatVector images, @ByVal Mat pano);
+    /** @brief These functions try to stitch the given images.
+
+    @param images Input images.
+    @param rois Region of interest rectangles.
+    @param pano Final pano.
+    @return Status code.
+     */
     public native @Cast("cv::Stitcher::Status") int stitch(@ByVal MatVector images, @Const @ByRef RectVectorVector rois, @ByVal Mat pano);
 
     public native @StdVector IntPointer component();
@@ -2399,6 +2842,8 @@ public static final int
 
 @Namespace("cv") public static native @Ptr Stitcher createStitcher(@Cast("bool") boolean try_use_gpu/*=false*/);
 @Namespace("cv") public static native @Ptr Stitcher createStitcher();
+
+/** @} stitching */
 
  // namespace cv
 
